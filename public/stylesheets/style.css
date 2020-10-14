@@ -1,8 +1,19 @@
-body {
-  padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
-}
+@tailwind base;
 
+@tailwind components;
+
+@tailwind utilities;
+
+body {
+	font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+.bg-header-services {
+	width: 100%;
+	height: 80vh;
+	background-image: url("/images/pexels-dio-hasbi-saniskoro-3280130.jpg");
+	background-position: center;
+	background-size: cover;
+}
 a {
-  color: #00B7FF;
+	color: #00b7ff;
 }
