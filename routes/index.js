@@ -1,38 +1,114 @@
 var express = require("express");
 var router = express.Router();
-const mustache = require("mustache");
-const fs = require("fs-extra");
+const mustache = require("mustache"); // moteur de template
+const fs = require("fs-extra"); // sert à aller chercher les fichiers html
+
+// les éléments a ajouter sur toutes les pages minimum head et footer qui contienne le début et la fin de la balise body.
+// le header contient le champs recherche et la navigation
 const include = {
-	head: fs.readFileSync("views/head.html", "utf8"),
-	header: fs.readFileSync("views/header.html", "utf8"),
-	footer: fs.readFileSync("views/footer.html", "utf8"),
+	head: fs.readFileSync("views/layout/head.html", "utf8"),
+	header: fs.readFileSync("views/layout/header.html", "utf8"),
+	footer: fs.readFileSync("views/layout/footer.html", "utf8"),
 };
-/* GET home page. */
+// les pages publiques
+/* home page. */
 router.get("/", function (req, res, next) {
 	let html = fs.readFileSync("views/index.html", "utf8");
 	let obj = { name: "Laura" };
 	let page = mustache.render(html, obj, include);
 	res.send(page);
-	//res.render("index", { name: "Sherlynn" });
 });
 
 router.get("/services", function (req, res, next) {
-	//res.render("services", { title: "Express" });
 	let html = fs.readFileSync("views/services.html", "utf8");
 	let obj = { pagename: "home", title: "Express" };
 	let page = mustache.render(html, obj, include);
 	res.send(page);
 });
 
-async function getHtmlPage(pageName, layout = "") {
-	// @Marina : ici on peut se passer d'un try{}catch{} ; pourquoi ???
-	// @David : car on donne toujours en paramètre (pageName) une page qui existe ?
-	let htmlPage = fs.readFileSync(pageName, "utf8");
-	if (layout) {
-		let htmlLayout = fs.readFileSync(layout, "utf8");
-		htmlPage = htmlLayout.replace("__MAINPAGE__", htmlPage);
-	}
-	return htmlPage;
-}
+router.get("/blog", function (req, res, next) {
+	let html = fs.readFileSync("views/blog.html.mustache", "utf8");
+	let page = mustache.render(html, {}, include);
+	res.send(page);
+});
+
+router.get("/cart", function (req, res, next) {
+	let html = fs.readFileSync("views/cart.html", "utf8");
+	let page = mustache.render(html, {}, include);
+	res.send(page);
+});
+
+router.get("/login", function (req, res, next) {
+	let html = fs.readFileSync("views/login.html", "utf8");
+	let page = mustache.render(html, {}, include);
+	res.send(page);
+});
+
+/// les pages de recherche
+router.get("/research", function (req, res, next) {
+	let html = fs.readFileSync("views/research.html", "utf8");
+	let page = mustache.render(html, {}, include);
+	res.send(page);
+});
+
+///
+router.get("/login/register", function (req, res, next) {
+	let html = fs.readFileSync("views/creationcompte.html", "utf8");
+	let page = mustache.render(html, {}, include);
+	res.send(page);
+});
+
+router.get("/login/register/step2", function (req, res, next) {
+	let html = fs.readFileSync("views/creationcompte.html", "utf8");
+	let page = mustache.render(html, {}, include);
+	res.send(page);
+});
+
+router.get("/login/register/step3", function (req, res, next) {
+	let html = fs.readFileSync("views/creationcompte.html", "utf8");
+	let page = mustache.render(html, {}, include);
+	res.send(page);
+});
+
+/// les pages privées
+
+/// les pages légales
+router.get("/legal-notice", function (req, res, next) {
+	let html = fs.readFileSync("views/footer/legal-notice.html", "utf8");
+	let page = mustache.render(html, {}, include);
+	res.send(page);
+});
+
+router.get("/help", function (req, res, next) {
+	let html = fs.readFileSync("views/footer/help.html", "utf8");
+	let page = mustache.render(html, {}, include);
+	res.send(page);
+});
+
+router.get("/confidentiality", function (req, res, next) {
+	let html = fs.readFileSync("views/footer/confidentiality.html", "utf8");
+	let page = mustache.render(html, {}, include);
+	res.send(page);
+});
+
+router.get("/terms-of-service", function (req, res, next) {
+	let html = fs.readFileSync("views/footer/terms-of-service.html", "utf8");
+	let page = mustache.render(html, {}, include);
+	res.send(page);
+});
+
+// route particulière avec le nom des boutiques et des produits
+// en dernier pour ne pas créer des conflits route
+router.get("/:shop", function (req, res, next) {
+	let html = fs.readFileSync("views/shop.html", "utf8");
+	let page = mustache.render(html, {}, include);
+	res.send(page);
+});
+
+router.get("/:shop/:product", function (req, res, next) {
+	let html = fs.readFileSync("views/product.html", "utf8");
+	let page = mustache.render(html, {}, include);
+	res.send(page);
+});
 
 module.exports = router;

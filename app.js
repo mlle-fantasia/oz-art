@@ -11,9 +11,9 @@ var usersRouter = require("./routes/users");
 
 var app = express();
 
-app.engine("html", mustacheExpress());
+app.engine("mustache", mustacheExpress());
 
-app.set("view engine", "html");
+app.set("view engine", "mustache");
 app.set("views", __dirname + "/views");
 
 app.use(express.static(__dirname + "/public")); // set static folder
