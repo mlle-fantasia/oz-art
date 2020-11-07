@@ -10,6 +10,18 @@ const include = {
 	header: fs.readFileSync("views/layout/header.html", "utf8"),
 	footer: fs.readFileSync("views/layout/footer.html", "utf8"),
 };
+
+// les erreurs
+const errors = [{ value: "email_not_valid", text: "email déjà existant ou non valide" }];
+
+//
+function errorText(value) {
+	for (let i = 0; i < errors.length; i++) {
+		const element = errors[i];
+		if (element.value === value) return element.text;
+	}
+}
+
 // les pages publiques
 /* home page. */
 router.get("/", function (req, res, next) {
@@ -18,26 +30,28 @@ router.get("/", function (req, res, next) {
 	let page = mustache.render(html, obj, include);
 	res.send(page);
 });
-
+/* page services */
 router.get("/services", function (req, res, next) {
 	let html = fs.readFileSync("views/services.html", "utf8");
 	let obj = { pagename: "home", title: "Express" };
 	let page = mustache.render(html, obj, include);
 	res.send(page);
 });
-
+/* page blog ozart */
 router.get("/blog", function (req, res, next) {
 	let html = fs.readFileSync("views/blog.html.mustache", "utf8");
 	let page = mustache.render(html, {}, include);
 	res.send(page);
 });
 
+/* page panier */
 router.get("/cart", function (req, res, next) {
 	let html = fs.readFileSync("views/cart.html", "utf8");
 	let page = mustache.render(html, {}, include);
 	res.send(page);
 });
 
+/* page login */
 router.get("/login", function (req, res, next) {
 	let html = fs.readFileSync("views/login.html", "utf8");
 	let page = mustache.render(html, {}, include);
@@ -52,20 +66,37 @@ router.get("/research", function (req, res, next) {
 });
 
 ///
+
+/* pages d'inscription  */
+/* la page une est la meme pour tout le monde  */
 router.get("/login/register", function (req, res, next) {
-	let html = fs.readFileSync("views/creationcompte.html", "utf8");
+	// vérifier la query si ya une erreur et la passer à mustache
+	let obj = {};
+	if (req.query.error) {
+		obj.error = errorText(req.query.error);
+	}
+	let html = fs.readFileSync("views/createaccount1.html", "utf8");
+	let page = mustache.render(html, obj, include);
+	res.send(page);
+});
+
+/* étape 2 pour les acheteurs  */
+router.get("/login/register/buyer/step2", function (req, res, next) {
+	let html = fs.readFileSync("views/createaccount2buyer.html", "utf8");
 	let page = mustache.render(html, {}, include);
 	res.send(page);
 });
 
-router.get("/login/register/step2", function (req, res, next) {
-	let html = fs.readFileSync("views/creationcompte.html", "utf8");
+/* étape 2 pour les venteur  */
+router.get("/login/register/seller/step2", function (req, res, next) {
+	let html = fs.readFileSync("views/createaccount2seller.html", "utf8");
 	let page = mustache.render(html, {}, include);
 	res.send(page);
 });
 
-router.get("/login/register/step3", function (req, res, next) {
-	let html = fs.readFileSync("views/creationcompte.html", "utf8");
+/* étape 3 pour les venteur  */
+router.get("/login/register/seller/step3", function (req, res, next) {
+	let html = fs.readFileSync("views/createaccount3seller.html", "utf8");
 	let page = mustache.render(html, {}, include);
 	res.send(page);
 });

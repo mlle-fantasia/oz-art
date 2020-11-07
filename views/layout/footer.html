@@ -18,5 +18,18 @@
        
     </div>
 </footer>
+
+<script>
+  /**
+   * s'exécute dès que la page est chagée.
+   * appelle toute les fonction "ready" 
+   */
+   window.onload = function(){
+    for (let iReady = 0; iReady < tabReady.length; iReady++) {
+        tabReady[iReady]();
+      }
+  };
+</script>
+
 </body>
 </html>

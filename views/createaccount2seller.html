@@ -1,0 +1,49 @@
+
+{{>head}}
+{{>header}}
+<div class="bg-gray-100">
+
+
+<div class="container mx-auto pt-20 pb-40">
+    <h1 class="text-center mb-4 text-md">Création de votre boutique</h1>
+    <div class="w-full max-w-md mx-auto">
+        <form action="/createaccount/step2" method="put" novalidate="novalidate"
+        onsubmit="return validForm()" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+          <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="name">
+              nom 
+            </label>
+            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="name" type="text" name="name" placeholder="Nom de la boutique">
+          </div>
+          <div class="flex items-center justify-end">
+             <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
+                Créer la boutique ^^
+              </button>
+            
+          </div>
+        </form>
+        <!-- <p class="text-center text-gray-500 text-xs">
+          &copy;2020 Acme Corp. All rights reserved.
+        </p> -->
+      </div>
+</div>
+</div>
+{{>footer}}
+
+
+<script>
+    function validForm(){
+        let name = document.getElementById("name").value;
+       
+        if (!name ) { 
+            alert("vous devez saisir tous les chanps"); 
+            return false }
+        else { 
+            return true;}
+        
+    }
+    addReady(function () {
+
+    });
+</script>
+

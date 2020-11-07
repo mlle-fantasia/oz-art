@@ -6,6 +6,15 @@
   <link rel="stylesheet" href="/stylesheets/style.css">
   <link href="/stylesheets/output.css" type="text/css" rel="stylesheet" />
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <script>
+    /**
+     * ajoute toutes les fonction "addReady" qui se trouvent dans les fichiers html dans un tableau qui va être exécuté dès que la page sera chagée
+    */
+    window.tabReady = [];
+    window.addReady = function (f) {
+      window.tabReady.push(f);
+    };
+  </script>
 
 </head>
 

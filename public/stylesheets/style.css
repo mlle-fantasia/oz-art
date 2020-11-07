@@ -17,3 +17,25 @@ body {
 a {
 	color: #00b7ff;
 }
+/*********** toggle btn page d'inscription ************/
+.toggle__dot {
+	top: -0.25rem;
+	left: -0.25rem;
+	transition: all 0.3s ease-in-out;
+}
+input:checked ~ .toggle__dot {
+	transform: translateX(100%);
+	background-color: #48bb78;
+}
+input:checked ~ .toggle__line {
+	background-color: #48bb7896;
+}
+
+/*** page login ***/
+.btn-radio {
+	padding: 10px;
+	border: 1px solid #e2e8f0;
+	border-radius: 4px;
+	margin-bottom: 10px;
+}
+/******/

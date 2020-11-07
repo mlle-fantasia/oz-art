@@ -1,0 +1,107 @@
+
+{{>head}}
+{{>header}}
+<div class="bg-gray-100">
+
+
+<div class="container mx-auto pt-20 pb-40">
+    <h1 class="text-center mb-4 text-md">Rejoindre la comunoté OZ art</h1>
+    <div class="w-full max-w-md mx-auto">
+        <form action="/createaccount/step3" method="post" novalidate="novalidate"
+        onsubmit="return validForm()" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+          <div class="mb-4">
+
+              <!-- Toggle Button -->
+              <div class="flex items-center justify-center w-full mb-4">
+                <!-- label -->
+                <div
+                class="mr-3 text-gray-700 font-medium"
+                >
+                Compte Acheteur
+                </div>
+                  <label 
+                  for="toogleType"
+                  class="flex items-center cursor-pointer"
+                >
+                  <!-- toggle -->
+                  <div class="relative">
+                    <!-- input -->
+                    <input id="toogleType" name="toogleType" type="checkbox" class="hidden" />
+                    <!-- line -->
+                    <div
+                      class="toggle__line w-12 h-6 bg-blue-200  rounded-full shadow-inner"
+                    ></div>
+                    <!-- dot -->
+                    <div
+                      class="toggle__dot absolute w-6 h-6 bg-blue-400  rounded-full shadow inset-y-0 left-0"
+                    ></div>
+                  </div>
+                  <!-- label 2 -->
+                  <div
+                    class="ml-3 text-gray-700 font-medium"
+                  >
+                    Compte Vendeur
+                  </div>
+                </label>
+              </div>
+              <!-- Fin Toggle Button -->
+
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="Email">
+              Email 
+            </label>
+            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="email" type="text" name="email" placeholder="Email">
+          </div>
+          <div class="mb-6">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="password1" >
+              Mot de passe
+            </label>
+            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline" id="password1" type="password" name="password1" placeholder="******************">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="password2">
+                Répétez le mot de passe
+              </label>
+              <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline" id="password2" type="password" name="password2" placeholder="******************">
+            <!-- <p class="text-red-500 text-xs italic">veillez renseigner un mot de passe.</p> -->
+            
+          </div>
+          <div class="flex items-center justify-end">
+           
+             <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
+                Créer
+              </button>
+           
+            
+          </div>
+        </form>
+        <!-- <p class="text-center text-gray-500 text-xs">
+          &copy;2020 Acme Corp. All rights reserved.
+        </p> -->
+      </div>
+</div>
+</div>
+{{>footer}}
+
+
+<script>
+    function validForm(){
+        let email = document.getElementById("email").value;
+        let password1 = document.getElementById("password1").value;
+        let password2 = document.getElementById("password2").value;
+        let type = document.getElementById("toogleType").checked;
+        console.log('type',type, password2, password1, email);
+        if (!email || !password1 || !password2) { 
+            alert("vous devez saisir tous les chanps"); 
+            return false }
+        else { 
+            if(password1 !== password2){
+                alert("Les mots de passe voivent être identiques"); 
+                return false }
+            else {
+
+                return true;}
+        }
+    }
+    addReady(function () {
+
+    });
+</script>
+
