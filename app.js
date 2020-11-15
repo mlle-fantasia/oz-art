@@ -18,26 +18,6 @@ var session = require("express-session");
 
 const app = express();
 
-var sess = {
-	genId: function () {
-		return uuid.v4();
-	},
-	secret: process.env.SESSION_KEY,
-	name: "sessionId",
-	resave: false,
-	saveUninitialized: false,
-	cookie: {
-		maxAge: 3600000, // une heure de session
-		secure: false,
-		httpOnly: false,
-	},
-};
-if (app.get("env") === "production") {
-	app.set("trust proxy", 1); // trust first proxy
-	sess.cookie.secure = true; // serve secure cookies
-}
-app.use(session(sess));
-
 app.engine("mustache", mustacheExpress());
 
 app.set("view engine", "mustache");
@@ -46,6 +26,26 @@ app.set("views", __dirname + "/views");
 app.use(express.static(__dirname + "/public")); // set static folder
 
 app.use(logger("dev"));
+
+var sess = {
+	genId: function (req) {
+		return uuid.v4();
+	},
+	secret: process.env.SESSION_KEY,
+	name: "session",
+	resave: false,
+	/* saveUninitialized: false, */
+	cookie: {
+		maxAge: 3600000, // une heure de session
+		secure: false,
+		httpOnly: false,
+	},
+};
+/* if (app.get("env") === "production") {
+	app.set("trust proxy", 1); // trust first proxy
+	sess.cookie.secure = true; // serve secure cookies
+} */
+app.use(session(sess));
 
 app.use(bodyParser.json({ limit: "50mb", extended: true }));
 app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));

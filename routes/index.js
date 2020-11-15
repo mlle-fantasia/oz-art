@@ -32,21 +32,21 @@ function errorText(value) {
 		if (element.value === value) return element.text;
 	}
 }
-// /**
-//  * vérifie le token passé dans la request.
-//  * middleware appeler sur toute les routes qui necessitent une authentification
-//  * @param {request} request
-//  * @param {response} response
-//  * @param {function} next
-//  */
-// function authMiddleware(request, response, next) {
-// 	try {
-// 		jwt.verify(request.headers.authorization, process.env.TOKEN_KEY);
-// 		next();
-// 	} catch (error) {
-// 		response.status(401).send();
-// 	}
-// }
+/**
+ * vérifie le cookie passé dans la request.
+ * middleware appeler sur toute les routes qui necessitent une authentification
+ * @param {request} req
+ * @param {response} res
+ * @param {function} next
+ */
+async function authMiddleware(req, res, next) {
+	console.log("req.session.user", req);
+	if (!req.session || !req.session.user) return res.status(401).send();
+	let user = await User.findOne({ _id: req.session.user._id });
+	if (!user) return res.status(401).send();
+	console.log("middleware ok ");
+	next();
+}
 
 // les pages publiques
 /* home page. */
@@ -145,6 +145,16 @@ router.get("/login/register/seller/step3", function (req, res, next) {
 });
 
 /// les pages privées
+router.get("/profil", authMiddleware, function (req, res, next) {
+	console.log("req", req);
+	let name = req.session.user.name && req.session.user.firstname ? req.session.user.firstname + " " + req.session.user.name : "Page de profil";
+	let obj = {
+		userName: name,
+	};
+	let html = fs.readFileSync("views/private/profil.html", "utf8");
+	let page = mustache.render(html, obj, include);
+	res.send(page);
+});
 
 /// les pages légales
 router.get("/legal-notice", function (req, res, next) {

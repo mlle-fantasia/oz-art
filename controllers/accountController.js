@@ -5,6 +5,7 @@ const User = require("../schema/userSchema.js");
 const mailjet = require("node-mailjet").connect(process.env.MAILHET_APIKEY, process.env.MAILHET_SECRETKEY);
 var jwt = require("jsonwebtoken");
 const mustache = require("mustache");
+const uuid = require("uuid");
 
 const includeMail = {
 	header: fs.readFileSync("viewsemail/headerMail.html", "utf8"),
@@ -144,15 +145,14 @@ module.exports.controller = (app) => {
 		if (!user) res.send("user_not_found");
 
 		let hash = user.password;
-		bcrypt.compare(req.body.password, hash).then(async function (res) {
-			if (res) {
-				let token = generateToken(user);
-				response.send({ token });
-			} else {
-				response.status(401);
-				response.send("pas ok");
-				return;
-			}
-		});
+		const match = await bcrypt.compare(req.body.password, hash);
+
+		if (match) {
+			//let token = generateToken(user);
+			req.session.user = user;
+			res.redirect("/profil");
+		} else {
+			res.status(401).send();
+		}
 	});
 };
