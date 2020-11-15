@@ -2,6 +2,8 @@ var express = require("express");
 var router = express.Router();
 const mustache = require("mustache"); // moteur de template
 const fs = require("fs-extra"); // sert à aller chercher les fichiers html
+var jwt = require("jsonwebtoken");
+const User = require("../schema/userSchema.js");
 
 // les éléments a ajouter sur toutes les pages minimum head et footer qui contienne le début et la fin de la balise body.
 // le header contient le champs recherche et la navigation
@@ -11,22 +13,46 @@ const include = {
 	footer: fs.readFileSync("views/layout/footer.html", "utf8"),
 };
 
-// les erreurs
-const errors = [{ value: "email_not_valid", text: "email déjà existant ou non valide" }];
+// tableau des erreurs
+const errors = [
+	{ value: "email_not_valid", text: "Email déjà existant ou non valide" },
+	{ value: "erreur_survenue", text: "Une erreur est survenue" },
+	{ value: "user_not_found", text: "Urilisateur non trouvé" },
+];
 
-//
+/**
+ * cherche dans le tableau d'erreur celle qui correspond à la clé passée en paramètre
+ * et renvoie le texte associé
+ * @param {string} value  clé de l'erreur
+ * @returns {string} le texte de l'erreur
+ */
 function errorText(value) {
 	for (let i = 0; i < errors.length; i++) {
 		const element = errors[i];
 		if (element.value === value) return element.text;
 	}
 }
+// /**
+//  * vérifie le token passé dans la request.
+//  * middleware appeler sur toute les routes qui necessitent une authentification
+//  * @param {request} request
+//  * @param {response} response
+//  * @param {function} next
+//  */
+// function authMiddleware(request, response, next) {
+// 	try {
+// 		jwt.verify(request.headers.authorization, process.env.TOKEN_KEY);
+// 		next();
+// 	} catch (error) {
+// 		response.status(401).send();
+// 	}
+// }
 
 // les pages publiques
 /* home page. */
 router.get("/", function (req, res, next) {
 	let html = fs.readFileSync("views/index.html", "utf8");
-	let obj = { name: "Laura" };
+	let obj = {};
 	let page = mustache.render(html, obj, include);
 	res.send(page);
 });
@@ -71,9 +97,13 @@ router.get("/research", function (req, res, next) {
 /* la page une est la meme pour tout le monde  */
 router.get("/login/register", function (req, res, next) {
 	// vérifier la query si ya une erreur et la passer à mustache
-	let obj = {};
+	let obj = { form: true };
 	if (req.query.error) {
 		obj.error = errorText(req.query.error);
+	}
+	if (req.query.success) {
+		obj.success = true;
+		obj.form = false;
 	}
 	let html = fs.readFileSync("views/createaccount1.html", "utf8");
 	let page = mustache.render(html, obj, include);
@@ -81,16 +111,29 @@ router.get("/login/register", function (req, res, next) {
 });
 
 /* étape 2 pour les acheteurs  */
-router.get("/login/register/buyer/step2", function (req, res, next) {
-	let html = fs.readFileSync("views/createaccount2buyer.html", "utf8");
-	let page = mustache.render(html, {}, include);
-	res.send(page);
+router.get("/login/register/buyer/step2", async function (req, res, next) {
+	let decoded = jwt.verify(req.query.token, process.env.TOKEN_KEY);
+	console.log("decoded", decoded);
+	let user = await User.findOne({ _id: decoded.id });
+	if (user) {
+		let obj = {
+			token: req.query.token,
+		};
+		let html = fs.readFileSync("views/createaccount2buyer.html", "utf8");
+		let page = mustache.render(html, obj, include);
+		res.send(page);
+	} else {
+		res.status(401).send();
+	}
 });
 
 /* étape 2 pour les venteur  */
 router.get("/login/register/seller/step2", function (req, res, next) {
+	let obj = {
+		token: req.query.token,
+	};
 	let html = fs.readFileSync("views/createaccount2seller.html", "utf8");
-	let page = mustache.render(html, {}, include);
+	let page = mustache.render(html, obj, include);
 	res.send(page);
 });
 

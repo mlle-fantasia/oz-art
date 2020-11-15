@@ -7,6 +7,12 @@
 <div class="container mx-auto pt-20 pb-40">
     <h1 class="text-center mb-4 text-md">Rejoindre la comunoté OZ art</h1>
     <div class="w-full max-w-md mx-auto">
+      {{#success}}
+        <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+          un email vous a été envoyé, <br> veillez verifier cliquer sur le lien qu'il contient pour poursuivre votre inscription
+        </div>
+      {{/success}}
+      {{#form}}
         <form action="/createaccount/step1" method="post" novalidate="novalidate"
         onsubmit="return validForm()" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
           <div class="mb-4">
@@ -91,6 +97,7 @@
             
           </div>
         </form>
+        {{/form}}
         <!-- <p class="text-center text-gray-500 text-xs">
           &copy;2020 Acme Corp. All rights reserved.
         </p> -->

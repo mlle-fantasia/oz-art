@@ -1,19 +1,42 @@
 var express = require("express");
+const mongoose = require("mongoose");
 var path = require("path");
+// import { v4 as uuid } from "uuid";
+const uuid = require("uuid");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
+const fs = require("fs-extra");
 const mustache = require("mustache");
 var mustacheExpress = require("mustache-express");
 var bodyParser = require("body-parser");
-const mongoose = require("mongoose");
-const userSchema = require("./schema/userSchema.js");
-const User = mongoose.model("user", userSchema, "user");
+const User = require("./schema/userSchema.js");
 require("dotenv").config();
 
 var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
+var session = require("express-session");
 
 const app = express();
+
+var sess = {
+	genId: function () {
+		return uuid.v4();
+	},
+	secret: process.env.SESSION_KEY,
+	name: "sessionId",
+	resave: false,
+	saveUninitialized: false,
+	cookie: {
+		maxAge: 3600000, // une heure de session
+		secure: false,
+		httpOnly: false,
+	},
+};
+if (app.get("env") === "production") {
+	app.set("trust proxy", 1); // trust first proxy
+	sess.cookie.secure = true; // serve secure cookies
+}
+app.use(session(sess));
 
 app.engine("mustache", mustacheExpress());
 
@@ -67,5 +90,7 @@ async function userMarina() {
 }
 
 // on ajoute les controllers
-var route = require("./controller/accountController.js");
-route.controller(app);
+fs.readdirSync("controllers").forEach((file) => {
+	let route = require("./controllers/" + file);
+	route.controller(app);
+});

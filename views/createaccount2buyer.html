@@ -7,9 +7,10 @@
 <div class="container mx-auto pt-20 pb-40">
     <h1 class="text-center mb-4 text-md">Quelques informations suplémentaires</h1>
     <div class="w-full max-w-md mx-auto">
-        <form action="/createaccount/step2/buyer" method="put" novalidate="novalidate"
+        <form action="/createaccount/step2/buyer" method="post" novalidate="novalidate"
         onsubmit="return validForm()" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
         <div class="mb-4">
+          <input  id="token" type="hidden" name="token" value="{{token}}">
             <label class="block text-gray-700 text-sm font-bold mb-2" for="name">
               Prénom 
             </label>
@@ -23,7 +24,7 @@
           </div>
 
           <div class="flex items-center justify-end">
-             <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
+             <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" id="btn-submit" type="submit">
                 Enregistrer
               </button>
             
@@ -44,13 +45,15 @@
        
         if (!name ) { 
             alert("vous devez saisir tous les chanps"); 
-            return false }
+            return true;
+            }
         else { 
             return true;}
-        
     }
     addReady(function () {
-
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get('token');
+      localStorage.setItem("token", token);
     });
 </script>
 
