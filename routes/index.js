@@ -40,11 +40,9 @@ function errorText(value) {
  * @param {function} next
  */
 async function authMiddleware(req, res, next) {
-	console.log("req.session.user", req);
 	if (!req.session || !req.session.user) return res.status(401).send();
 	let user = await User.findOne({ _id: req.session.user._id });
 	if (!user) return res.status(401).send();
-	console.log("middleware ok ");
 	next();
 }
 
@@ -113,7 +111,6 @@ router.get("/login/register", function (req, res, next) {
 /* étape 2 pour les acheteurs  */
 router.get("/login/register/buyer/step2", async function (req, res, next) {
 	let decoded = jwt.verify(req.query.token, process.env.TOKEN_KEY);
-	console.log("decoded", decoded);
 	let user = await User.findOne({ _id: decoded.id });
 	if (user) {
 		let obj = {
@@ -146,7 +143,6 @@ router.get("/login/register/seller/step3", function (req, res, next) {
 
 /// les pages privées
 router.get("/profil", authMiddleware, function (req, res, next) {
-	console.log("req", req);
 	let name = req.session.user.name && req.session.user.firstname ? req.session.user.firstname + " " + req.session.user.name : "Page de profil";
 	let obj = {
 		userName: name,

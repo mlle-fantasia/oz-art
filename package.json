@@ -4,7 +4,8 @@
 	"private": true,
 	"scripts": {
 		"start": "node ./bin/www",
-		"dev": "nodemon ./bin/www"
+		"dev:back": "nodemon -e js,html ./bin/www",
+		"dev:front" : "npx tailwindcss build ./public/stylesheets/tailwind.css -o ./public/stylesheets/tailwindoutput.css"
 	},
 	"dependencies": {
 		"bcrypt": "^5.0.0",
