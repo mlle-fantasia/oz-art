@@ -4,6 +4,7 @@ var path = require("path");
 // import { v4 as uuid } from "uuid";
 const uuid = require("uuid");
 var cookieParser = require("cookie-parser");
+const fileUpload = require("express-fileupload");
 var logger = require("morgan");
 const fs = require("fs-extra");
 const mustache = require("mustache");
@@ -36,7 +37,7 @@ var sess = {
 	resave: false,
 	/* saveUninitialized: false, */
 	cookie: {
-		maxAge: 3600000, // une heure de session
+		maxAge: 36000000000, // une heure de session
 		secure: false,
 		httpOnly: false,
 	},
@@ -49,10 +50,13 @@ app.use(session(sess));
 
 app.use(bodyParser.json({ limit: "50mb", extended: true }));
 app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
+app.use(fileUpload({ abortOnLimit: true, responseOnLimit: "File size limit has been reached" }));
 /* app.use(express.json());
 app.use(express.urlencoded({ extended: false })); */
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
+fs.ensureDirSync("./uploads");
+app.use(express.static(path.join(__dirname, "uploads")));
 
 app.use("/", indexRouter);
 app.use("/users", usersRouter);

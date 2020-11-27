@@ -142,10 +142,11 @@ router.get("/login/register/seller/step3", function (req, res, next) {
 });
 
 /// les pages privées
-router.get("/profil", authMiddleware, function (req, res, next) {
-	let name = req.session.user.name && req.session.user.firstname ? req.session.user.firstname + " " + req.session.user.name : "Page de profil";
+router.get("/profil", authMiddleware, async function (req, res, next) {
+	console.log("je passe profil");
+	let user = await User.findOne({ _id: req.session.user._id });
 	let obj = {
-		userName: name,
+		user: user,
 	};
 	let html = fs.readFileSync("views/private/profil.html", "utf8");
 	let page = mustache.render(html, obj, include);
