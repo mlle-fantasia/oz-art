@@ -55,9 +55,9 @@ module.exports.controller = (app) => {
 	app.post("/createaccount/step1", async function (req, res) {
 		let hash = bcrypt.hashSync(req.body.password1, salt);
 		let newUser = new User();
-		console.log("req.body", req.body);
-		newUser.email = req.body.email;
 		newUser.type = req.body.type;
+		newUser.right = req.body.email === process.env.EMAIL_SUPERADMIN ? "SUPER_ADMIN" : "";
+		newUser.email = req.body.email;
 		newUser.password = hash;
 
 		newUser
@@ -138,10 +138,8 @@ module.exports.controller = (app) => {
 	});
 
 	app.post("/createaccount/step2/seller", async function (req, res) {
-		console.log("req.body", req.body);
 		let decoded = jwt.verify(req.body.token, process.env.TOKEN_KEY);
 		let user = await User.findOne({ _id: decoded.id });
-		console.log("req.body seller step2", req.body);
 		if (user) {
 			const data = { ...req.body };
 			// création de la boutique avec l'id du user
@@ -159,6 +157,8 @@ module.exports.controller = (app) => {
 			let userSaved = Services.saveAvatar(data, req.files, user._id);
 			if (!userSaved) return res.status(500).send(err);
 			else {
+				shopSaved.avatar = userSaved.avatar;
+				await Shop.updateOne({ _id: shopSaved._id }, shopSaved);
 				req.session.user = userSaved;
 				res.redirect("/profil");
 			}
@@ -193,7 +193,7 @@ module.exports.controller = (app) => {
 	 */
 	app.post("/users/delete/:id", async function (req, res) {
 		let user = await User.findOne({ _id: req.params.id });
-		//suprimer l'avatar
+		//suprimer l'avatar du user
 		let pathAvatar = "./uploads/avatars/" + req.params.id;
 		let files = glob.sync(pathAvatar + ".*", {});
 		if (files && files.length) {
@@ -202,7 +202,13 @@ module.exports.controller = (app) => {
 				fs.unlinkSync(file);
 			}
 		}
-		// si c'est user type === seller supprimer les images de la boutique et les produits
+		// si c'est user type === seller
+		// supprimer la boutique
+		let shop = await Shop.findOne({ _id: user.shop });
+		await shop.deleteOne();
+		// supprimer les images de la boutique et les produits
+
+		// supprimer le user
 		await user.deleteOne();
 		res.redirect("/");
 	});

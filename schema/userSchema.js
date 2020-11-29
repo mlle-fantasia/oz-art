@@ -3,23 +3,19 @@ const uniqueValidator = require("mongoose-unique-validator");
 const Schema = mongoose.Schema;
 
 const userSchema = new mongoose.Schema({
+	created: {
+		type: Date,
+		required: [false, ""],
+	},
+	type: {
+		type: String,
+		required: [true, "type for user is required"],
+	},
+	right: {
+		type: String,
+		required: [false, ""],
+	},
 	shop: { type: Schema.Types.ObjectId, ref: "shop" },
-	address1: {
-		type: String,
-		required: [false, ""],
-	},
-	address2: {
-		type: String,
-		required: [false, ""],
-	},
-	city: {
-		type: String,
-		required: [false, ""],
-	},
-	zip: {
-		type: String,
-		required: [false, ""],
-	},
 	name: {
 		type: String,
 		required: [false, ""],
@@ -45,12 +41,20 @@ const userSchema = new mongoose.Schema({
 		type: String,
 		required: [false, ""],
 	},
-	type: {
+	address1: {
 		type: String,
-		required: [true, "type for user is required"],
+		required: [false, ""],
 	},
-	created: {
-		type: Date,
+	address2: {
+		type: String,
+		required: [false, ""],
+	},
+	city: {
+		type: String,
+		required: [false, ""],
+	},
+	zip: {
+		type: String,
 		required: [false, ""],
 	},
 });

@@ -116,20 +116,22 @@
 
     </form>
     </div>
-
-    <div class="mt-4 p-8 bg-creme rounded cursor-pointer">
-        <div class="text-xl font-semibold"> Mes newsletters </div> 
-    </div>
     <div class="mt-4 p-8 bg-creme rounded cursor-pointer">
         <div class="text-xl font-semibold"> Mes boutiques et création préférées </div> 
+    </div>
+    <div class="mt-4 p-8 bg-creme rounded cursor-pointer">
+        <div class="text-xl font-semibold"> Mes messages </div> 
     </div>
     <div class="my-4 p-8 bg-creme rounded cursor-pointer">
         <div class="text-xl font-semibold"> Mon historique d'achat </div> 
     </div>
+    <div class="mt-4 p-8 bg-creme rounded cursor-pointer">
+        <div class="text-xl font-semibold"> Mes newsletters </div> 
+    </div>
     <div class="my-4 p-8 bg-creme rounded cursor-pointer">
         <div class="text-xl font-semibold"> Autres actions </div> 
-        <form action="/users/delete/{{user._id}}" method="post" novalidate="novalidate" enctype="multipart/form-data" >
-            <button class="btn-primary mt-2" type="submit">Supprimer mon compte</button>
+        <form action="/users/delete/{{user._id}}" method="post" novalidate="novalidate" enctype="multipart/form-data" id="form_delete">
+            <button id="btn_delete" class="btn-primary mt-2" type="button">Supprimer mon compte</button>
         </form>
     </div>
     {{#seller}}
@@ -141,25 +143,22 @@
     {{/seller}}
 </div>
 
+<div id="message_dialog" class="container-message-dialog" style="display: none;">
+    <div class="message-dialog flex flex-col">
+      <div class="message-dialog-title text-xl font-semibold p-10 bg-jaune">Confirmation</div>
+      <div class="message-dialog-content pl-10 pt-4 flex-grow">Etes vous sure de vouloir supprimer votre compte? {{#seller}} En supprimant votre compte, vous allez aussi supprimer votre boutique.{{/seller}} </div>
+      <div class="message-dialog-footer pb-4 pr-4 ">
+        <button class="message-dialog-btn-no btn-primary float-right mt-2"  type="button">Annuler</button>
+        <button class="message-dialog-btn-yes btn-primary float-right mt-2 ml-2"  type="button">Supprimer</button>
+      </div>
+    </div>
+  </div>
 {{>footer}}
 
 <script>
     
     addReady(function () {
-        //ajouter  un event listener sur le submit du form user, avant de bubmit, on vérifie les champs
-        const formUser = document.querySelector("#form-user");
-        formUser.addEventListener("submit", function(e){
-            if(validFormUser()){
-                e.target.submit();
-            }
-        })
-        const formAvatar = document.querySelector("#form-avatar");
-        if(formAvatar){
-            formAvatar.addEventListener("submit", function(e){
-                e.target.submit();
-            })
-        }
-
+        // choix des avatars par défault
         const avatar = document.querySelectorAll(".avatar-default");
         if(avatar){
             avatar.forEach((item)=>{
@@ -174,6 +173,39 @@
             })
             })
         }
+
+        //ajouter  un event listener sur le submit du form user, avant de bubmit, on vérifie les champs
+        const formUser = document.querySelector("#form-user");
+        formUser.addEventListener("submit", function(e){
+            if(validFormUser()){
+                e.target.submit();
+            }
+        })
+        const formAvatar = document.querySelector("#form-avatar");
+        if(formAvatar){
+            formAvatar.addEventListener("submit", function(e){
+                e.target.submit();
+            })
+        }
+
+        // message dialog suppression user
+        // faire apparaitre la fenetre de confirmation
+        const btnDelete = document.querySelector("#btn_delete");
+        btnDelete.addEventListener("click", function(e){
+            document.getElementById("message_dialog").style.display = 'block';
+            }) 
+        // btn non masquer la fenetre
+        let messageDialogBtnNo = document.querySelector(".message-dialog-btn-no");
+        messageDialogBtnNo.addEventListener('click', ()=>{
+            document.getElementById("message_dialog").style.display = 'none';
+        })
+        //btn oui masquer la fenetre et submit le fom de suppression de compte
+        let messageDialogBtnYes = document.querySelector(".message-dialog-btn-yes");
+        messageDialogBtnYes.addEventListener('click', ()=>{
+            document.getElementById("message_dialog").style.display = 'none';
+            const formDelete = document.querySelector("#form_delete");
+            formDelete.submit()
+        })
         
        
     });

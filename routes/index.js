@@ -4,6 +4,7 @@ const mustache = require("mustache"); // moteur de template
 const fs = require("fs-extra"); // sert à aller chercher les fichiers html
 var jwt = require("jsonwebtoken");
 const User = require("../schema/userSchema.js");
+const Shop = require("../schema/shopSchema.js");
 
 // les éléments a ajouter sur toutes les pages minimum head et footer qui contienne le début et la fin de la balise body.
 // le header contient le champs recherche et la navigation
@@ -48,9 +49,13 @@ async function authMiddleware(req, res, next) {
 
 // les pages publiques
 /* home page. */
-router.get("/", function (req, res, next) {
+router.get("/", async function (req, res, next) {
 	let html = fs.readFileSync("views/index.html", "utf8");
-	let obj = {};
+	let shops = await Shop.find();
+	console.log("qhops", shops);
+	let obj = {
+		shops,
+	};
 	let page = mustache.render(html, obj, include);
 	res.send(page);
 });
@@ -167,8 +172,11 @@ router.get("/profil", authMiddleware, async function (req, res, next) {
 	res.send(page);
 });
 router.get("/profil/shop", authMiddleware, async function (req, res, next) {
+	console.log("req.session.user ici ", req.session.user);
 	let user = await User.findOne({ _id: req.session.user._id });
-	let shop = await User.findOne({ _id: user.shop });
+	if (!user) res.status(401).send();
+	let shop = await Shop.findOne({ _id: user.shop });
+	if (!shop) res.status(401).send();
 	let obj = {
 		user: user,
 		shop: shop,

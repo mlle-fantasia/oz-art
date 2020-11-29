@@ -9,7 +9,7 @@
     <div class="pt-20">
         <div class="bg-ocre rounded h-48 grid items-stretch ">
             <div class="text-xl inline-block align-text-bottom text-center font-semibold self-end justify-self-center mb-4">
-                {{user.firstname}} {{user.name}}
+                {{shop.name}} 
             </div>
            
         </div>
@@ -26,36 +26,21 @@
     </div>
     <div class="mt-4 p-8 bg-creme rounded cursor-pointer">
         <form action="/users/edit/{{user._id}}" method="post" novalidate="novalidate" enctype="multipart/form-data" id="form-user">
-       <div class="text-xl font-semibold mb-2">Mes coordonnées </div>  
+       <div class="text-xl font-semibold mb-2">Coordonnées </div>  
         <div>
            
-            
-            <div class="grid grid-cols-2 gap-4 mt-2">
-                <div>
-                    <label class="block text-gray-700 text-sm font-bold mb-2" for="Email">
-                        Email 
-                      </label>
-                      <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="email" type="text" name="email" value="{{user.email}}">
-                </div>
-                <div>
-                    <label class="block text-gray-700 text-sm font-bold mb-2" for="tel">
-                        Téléphone 
-                      </label>
-                      <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="tel" type="phone" name="tel" value="{{user.phone}}">
-                </div>
-            </div>
             <div class="grid grid-cols-2 gap-4 mt-2">
                 <div>
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="address1">
                         Adresse 
                       </label>
-                      <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="address1" type="text" name="address1" value="{{user.address1}}">
+                      <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="address1" type="text" name="address1" value="{{shop.address1}}">
                 </div>
                 <div>
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="address2">
                         ligne complémentaire
                       </label>
-                      <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="address2" type="text" name="address2" value="{{user.address2}}">
+                      <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="address2" type="text" name="address2" value="{{shop.address2}}">
                 </div>
             </div>
             <div class="grid grid-cols-2 gap-4 mt-2">
@@ -63,13 +48,13 @@
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="zip">
                         Code postal 
                       </label>
-                      <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="zip" type="text" name="zip" value="{{user.zip}}">
+                      <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="zip" type="text" name="zip" value="{{shop.zip}}">
                 </div>
                 <div>
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="city">
                         Ville
                       </label>
-                      <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="city" type="text" name="city" value="{{user.city}}">
+                      <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="city" type="text" name="city" value="{{shop.city}}">
                 </div>
             </div>
             <div>
