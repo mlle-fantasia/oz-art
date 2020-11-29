@@ -2,10 +2,13 @@ const bcrypt = require("bcrypt");
 const salt = bcrypt.genSaltSync(10);
 const fs = require("fs-extra");
 const User = require("../schema/userSchema.js");
+const Shop = require("../schema/shopSchema.js");
 const mailjet = require("node-mailjet").connect(process.env.MAILHET_APIKEY, process.env.MAILHET_SECRETKEY);
 var jwt = require("jsonwebtoken");
 const mustache = require("mustache");
 const uuid = require("uuid");
+const path = require("path");
+var glob = require("glob");
 
 const includeMail = {
 	header: fs.readFileSync("viewsemail/headerMail.html", "utf8"),
@@ -113,23 +116,52 @@ module.exports.controller = (app) => {
 		}
 	});
 
+	/**
+	 * mise à jour de l'utilisateur lors de l'étape deux d'un acheteur
+	 * champs obligatoire : nom et prénom
+	 */
 	app.post("/createaccount/step2/buyer", async function (req, res) {
-		let decoded = jwt.verify(req.query.token, process.env.TOKEN_KEY);
+		let decoded = jwt.verify(req.body.token, process.env.TOKEN_KEY);
 		let user = await User.findOne({ _id: decoded.id });
+		console.log("req.body step2", req.body);
 		if (user) {
-			//
-			res.redirect("/?token=" + req.query.token);
+			await User.updateOne({ _id: user._id }, req.body);
+			let userSaved = Services.saveAvatar(req.body, req.files, user._id);
+			if (!userSaved) return res.status(500).send(err);
+			else {
+				req.session.user = userSaved;
+				res.redirect("/profil");
+			}
 		} else {
 			res.status(401).send();
 		}
 	});
 
 	app.post("/createaccount/step2/seller", async function (req, res) {
-		let decoded = jwt.verify(req.query.token, process.env.TOKEN_KEY);
+		console.log("req.body", req.body);
+		let decoded = jwt.verify(req.body.token, process.env.TOKEN_KEY);
 		let user = await User.findOne({ _id: decoded.id });
+		console.log("req.body seller step2", req.body);
 		if (user) {
-			//
-			res.redirect("/?token=" + req.query.token);
+			const data = { ...req.body };
+			// création de la boutique avec l'id du user
+			let newShop = new Shop();
+			newShop.name = req.body.shop_name;
+			newShop.address1 = req.body.shop_address1;
+			newShop.address2 = req.body.shop_address2;
+			newShop.zip = req.body.shop_zip;
+			newShop.city = req.body.shop_city;
+			newShop.user = user._id;
+			let shopSaved = await newShop.save();
+			// on récupère l'id de la boutique et on met à jour le user et son avatar
+			data.shop = shopSaved._id;
+			await User.updateOne({ _id: user._id }, data);
+			let userSaved = Services.saveAvatar(data, req.files, user._id);
+			if (!userSaved) return res.status(500).send(err);
+			else {
+				req.session.user = userSaved;
+				res.redirect("/profil");
+			}
 		} else {
 			res.status(401).send();
 		}
@@ -154,5 +186,24 @@ module.exports.controller = (app) => {
 		} else {
 			res.status(401).send();
 		}
+	});
+
+	/**
+	 * supprime le compte d'un utilisateur avec toutes les images qui lui sont liées
+	 */
+	app.post("/users/delete/:id", async function (req, res) {
+		let user = await User.findOne({ _id: req.params.id });
+		//suprimer l'avatar
+		let pathAvatar = "./uploads/avatars/" + req.params.id;
+		let files = glob.sync(pathAvatar + ".*", {});
+		if (files && files.length) {
+			for (let i = 0; i < files.length; i++) {
+				const file = files[i];
+				fs.unlinkSync(file);
+			}
+		}
+		// si c'est user type === seller supprimer les images de la boutique et les produits
+		await user.deleteOne();
+		res.redirect("/");
 	});
 };

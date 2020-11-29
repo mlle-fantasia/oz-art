@@ -17,45 +17,10 @@ module.exports.controller = (app) => {
 	});
 
 	app.post("/users/edit/avatar/:id", async function (req, res) {
-		let uploadPath = "./uploads/avatars";
-		if (req.files || req.body.avatardefault) {
-			// suprimer les avatar existant s'il y en a
-			let pathAvatar = uploadPath + "/" + req.params.id;
-			let files = glob.sync(pathAvatar + ".*", {});
-			console.log("files", files);
-			if (files && files.length) {
-				for (let i = 0; i < files.length; i++) {
-					const file = files[i];
-					fs.unlinkSync(file);
-				}
-			}
-			if (req.files && req.files.avatar) {
-				console.log("req.files", req.files);
-				let f = path.basename(req.files.avatar.name);
-				let ext = path.extname(f).toLowerCase();
-				pathAvatar += ext;
-				req.files.avatar.mv(pathAvatar, async function (err) {
-					if (err) return res.status(500).send(err);
-					const data = { ...req.body, avatar: "/avatars/" + req.params.id + ext };
-					console.log("data1", data);
-					const user = await User.update({ _id: req.params.id }, data);
-					res.redirect("/profil");
-				});
-			}
-			if (req.body.avatardefault) {
-				console.log("req.body.avatardefault", req.body.avatardefault);
-				let defaultAvatarSelected = "./public/images/avatars-default/" + req.body.avatardefault;
-				let defaultAvatarSelectedDest = "./uploads/avatars/" + req.body.avatardefault;
-				//s'il existe déjà on enregistre juste dans user
-				if (!fs.existsSync(defaultAvatarSelectedDest)) {
-					await fs.copySync(defaultAvatarSelected, defaultAvatarSelectedDest);
-				}
-				const data = { ...req.body, avatar: "/avatars/" + req.body.avatardefault };
-				console.log("data2", data);
-				const user = await User.update({ _id: req.params.id }, data);
-				res.redirect("/profil");
-			}
-		} else {
+		let userSaved = Services.saveAvatar(req.body, req.files, req.params.id);
+		if (!userSaved) return res.status(500).send(err);
+		else {
+			req.session.user = userSaved;
 			res.redirect("/profil");
 		}
 	});

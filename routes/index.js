@@ -115,6 +115,7 @@ router.get("/login/register/buyer/step2", async function (req, res, next) {
 	if (user) {
 		let obj = {
 			token: req.query.token,
+			email: decoded.email,
 		};
 		let html = fs.readFileSync("views/createaccount2buyer.html", "utf8");
 		let page = mustache.render(html, obj, include);
@@ -125,13 +126,22 @@ router.get("/login/register/buyer/step2", async function (req, res, next) {
 });
 
 /* étape 2 pour les venteur  */
-router.get("/login/register/seller/step2", function (req, res, next) {
-	let obj = {
-		token: req.query.token,
-	};
-	let html = fs.readFileSync("views/createaccount2seller.html", "utf8");
-	let page = mustache.render(html, obj, include);
-	res.send(page);
+router.get("/login/register/seller/step2", async function (req, res, next) {
+	let decoded = jwt.verify(req.query.token, process.env.TOKEN_KEY);
+	let user = await User.findOne({ _id: decoded.id });
+	console.log("token in route", req.query.token);
+	if (user) {
+		let obj = {
+			token: req.query.token,
+			email: decoded.email,
+		};
+		console.log("obj", obj);
+		let html = fs.readFileSync("views/createaccount2seller.html", "utf8");
+		let page = mustache.render(html, obj, include);
+		res.send(page);
+	} else {
+		res.status(401).send();
+	}
 });
 
 /* étape 3 pour les venteur  */
@@ -143,12 +153,27 @@ router.get("/login/register/seller/step3", function (req, res, next) {
 
 /// les pages privées
 router.get("/profil", authMiddleware, async function (req, res, next) {
-	console.log("je passe profil");
 	let user = await User.findOne({ _id: req.session.user._id });
 	let obj = {
+		seller: user.type === "seller",
+		buyer: user.type === "buyer",
 		user: user,
+		completeName: function () {
+			return user.firstname.charAt(0).toUpperCase() + user.firstname.substr(1) + " " + user.name.toUpperCase();
+		},
 	};
 	let html = fs.readFileSync("views/private/profil.html", "utf8");
+	let page = mustache.render(html, obj, include);
+	res.send(page);
+});
+router.get("/profil/shop", authMiddleware, async function (req, res, next) {
+	let user = await User.findOne({ _id: req.session.user._id });
+	let shop = await User.findOne({ _id: user.shop });
+	let obj = {
+		user: user,
+		shop: shop,
+	};
+	let html = fs.readFileSync("views/private/profilshop.html", "utf8");
 	let page = mustache.render(html, obj, include);
 	res.send(page);
 });

@@ -90,7 +90,7 @@
           </div>
           <div class="flex items-center justify-end">
            
-             <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
+             <button class="btn-primary" type="submit">
                 Créer
               </button>
            
@@ -129,6 +129,9 @@
     }
     addReady(function () {
         console.log('coucou', window.location.pathname.split("/")[2] );
+         document.getElementById("email").value = "marinafront2@gmail.com";
+        document.getElementById("password1").value = "pass123";
+        document.getElementById("password2").value = "pass123";
 
     });
 </script>

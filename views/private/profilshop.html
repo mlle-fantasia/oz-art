@@ -9,63 +9,27 @@
     <div class="pt-20">
         <div class="bg-ocre rounded h-48 grid items-stretch ">
             <div class="text-xl inline-block align-text-bottom text-center font-semibold self-end justify-self-center mb-4">
-         {{completeName}}
+                {{user.firstname}} {{user.name}}
             </div>
            
         </div>
     </div>
-    {{#buyer}}
     <div class="mt-4 p-8 bg-creme rounded  cursor-pointer">
         <form action="/users/edit/avatar/{{user._id}}" method="post" novalidate="novalidate" enctype="multipart/form-data" id="form-avatar">
         <div class="text-xl font-semibold mb-3"> Avatar </div> 
-   
-        <div class="text-md mb-2"> Choisissez un avatar par défault </div> 
-        <input name="avatardefault"type="hidden" id="avatar-default" value="">
-        <div class="grid grid-cols-10 gap-6 mb-3">
-            <div>
-                <img id="chat.jpg" class="rounded-full w-full cursor-pointer avatar-default" src="/images/avatars-default/chat.jpg" alt="photo de profil">
-            </div>
-            <div>
-                <img id="mer.jpg" class="rounded-full w-full cursor-pointer avatar-default" src="/images/avatars-default/mer.jpg" alt="photo de profil">
-            </div>
-            <div>
-                <img id="fillepaysage.png" class="rounded-full w-full cursor-pointer avatar-default" src="/images/avatars-default/fillepaysage.png" alt="photo de profil">
-            </div>
-            <div>
-                <img id="visage1.jpg" class="rounded-full w-full cursor-pointer avatar-default" src="/images/avatars-default/visage1.jpg" alt="photo de profil">
-            </div>
-            <div>
-                <img id="poisson.jpg" class="rounded-full w-full cursor-pointer avatar-default" src="/images/avatars-default/poisson.jpg" alt="photo de profil">
-            </div>
-        </div>
         <div class="text-md mb-2"> Ou choisissez votre propre avatar</div> 
-       
             <input name="avatar" type="file" id="avatar" size="40"
             class="w-full shadow appearance-none border rounded w-40 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                     accept="image/png, image/jpeg">
                     <button class="btn-primary mt-2" type="submit">Enregistrer</button>
     </form>
     </div>
-    {{/buyer}}
     <div class="mt-4 p-8 bg-creme rounded cursor-pointer">
         <form action="/users/edit/{{user._id}}" method="post" novalidate="novalidate" enctype="multipart/form-data" id="form-user">
        <div class="text-xl font-semibold mb-2">Mes coordonnées </div>  
         <div>
            
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-gray-700 text-sm font-bold mb-2" for="firstname">
-                        Prénom 
-                      </label>
-                      <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="firstname" type="text" name="firstname" value="{{user.firstname}}">
-                </div>
-                <div>
-                    <label class="block text-gray-700 text-sm font-bold mb-2" for="name">
-                        Nom 
-                      </label>
-                      <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="name" type="text" name="name" value="{{user.name}}">
-                </div>
-            </div>
+            
             <div class="grid grid-cols-2 gap-4 mt-2">
                 <div>
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="Email">
@@ -118,27 +82,16 @@
     </div>
 
     <div class="mt-4 p-8 bg-creme rounded cursor-pointer">
-        <div class="text-xl font-semibold"> Mes newsletters </div> 
+        <div class="text-xl font-semibold"> Historique newsletters </div> 
     </div>
-    <div class="mt-4 p-8 bg-creme rounded cursor-pointer">
-        <div class="text-xl font-semibold"> Mes boutiques et création préférées </div> 
-    </div>
-    <div class="my-4 p-8 bg-creme rounded cursor-pointer">
-        <div class="text-xl font-semibold"> Mon historique d'achat </div> 
-    </div>
+
     <div class="my-4 p-8 bg-creme rounded cursor-pointer">
         <div class="text-xl font-semibold"> Autres actions </div> 
-        <form action="/users/delete/{{user._id}}" method="post" novalidate="novalidate" enctype="multipart/form-data" >
-            <button class="btn-primary mt-2" type="submit">Supprimer mon compte</button>
+        <form action="/users/delete/{{user._id}}" method="post" novalidate="novalidate" enctype="multipart/form-data" id="form-user">
+            <button class="btn-primary mt-2" type="submit">Supprimer ma boutique</button>
         </form>
     </div>
-    {{#seller}}
-    <div class="my-4 p-8 bg-creme rounded cursor-pointer">
-        <a href="/profil/shop">
-            <div class="text-xl font-semibold"> Ma Boutique >></div> 
-        </a>
-    </div>
-    {{/seller}}
+
 </div>
 
 {{>footer}}
@@ -154,26 +107,9 @@
             }
         })
         const formAvatar = document.querySelector("#form-avatar");
-        if(formAvatar){
-            formAvatar.addEventListener("submit", function(e){
-                e.target.submit();
-            })
-        }
-
-        const avatar = document.querySelectorAll(".avatar-default");
-        if(avatar){
-            avatar.forEach((item)=>{
-            item.addEventListener("click", function(e){
-                let idSelected = e.target.id
-                avatar.forEach((item2)=>{
-                    console.log('item2',item2);
-                    item2.classList.remove("avatar-selected");
-                })
-                e.target.classList.add("avatar-selected")
-                document.getElementById("avatar-default").value = idSelected; 
-            })
-            })
-        }
+        formAvatar.addEventListener("submit", function(e){
+            e.target.submit();
+        })
         
        
     });

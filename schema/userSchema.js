@@ -1,7 +1,9 @@
 const mongoose = require("mongoose");
 const uniqueValidator = require("mongoose-unique-validator");
+const Schema = mongoose.Schema;
 
 const userSchema = new mongoose.Schema({
+	shop: { type: Schema.Types.ObjectId, ref: "shop" },
 	address1: {
 		type: String,
 		required: [false, ""],

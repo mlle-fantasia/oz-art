@@ -16,6 +16,7 @@ require("dotenv").config();
 var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
 var session = require("express-session");
+global.Services = require("./utils/Services");
 
 const app = express();
 
