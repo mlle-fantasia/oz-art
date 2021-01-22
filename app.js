@@ -10,6 +10,7 @@ const fs = require("fs-extra");
 const mustache = require("mustache");
 var mustacheExpress = require("mustache-express");
 var bodyParser = require("body-parser");
+const cors = require("cors");
 const User = require("./schema/userSchema.js");
 require("dotenv").config();
 
@@ -28,6 +29,19 @@ app.set("views", __dirname + "/views");
 app.use(express.static(__dirname + "/public")); // set static folder
 
 app.use(logger("dev"));
+
+var corsOptions = {
+	// origin: "http://telinko.ecaste.com", // PROD
+	// origin: "http://localhost:8080", // DEV
+	origin: true,
+	methods: "GET,PUT,POST,DELETE,OPTIONS",
+	allowedHeaders:
+		"Content-Type, Authorization, Credentials, X-Requested-With, Accept, Content-Length, x-auth-apikey, x-auth-apisecret, x-auth-accesstoken, x-auth-refreshtoken, x-auth-webaccesstoken, x-auth-webrefreshtoken",
+	credentials: true,
+	optionsSuccessStatus: 200,
+};
+app.options("*", cors(corsOptions));
+app.use(cors(corsOptions));
 
 var sess = {
 	genId: function (req) {
@@ -62,6 +76,12 @@ app.use(express.static(path.join(__dirname, "uploads")));
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
 
+// on ajoute les controllers
+fs.readdirSync("controllers").forEach((file) => {
+	let route = require("./controllers/" + file);
+	route.controller(app);
+});
+
 module.exports = app;
 
 mongoose.connect(
@@ -93,9 +113,3 @@ async function userMarina() {
 		}).save();
 	} */
 }
-
-// on ajoute les controllers
-fs.readdirSync("controllers").forEach((file) => {
-	let route = require("./controllers/" + file);
-	route.controller(app);
-});

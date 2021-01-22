@@ -2,49 +2,84 @@ const User = require("../schema/userSchema.js");
 const path = require("path");
 const fs = require("fs-extra");
 var glob = require("glob");
+var jwt = require("jsonwebtoken");
 
-exports.saveAvatar = async (dataBody, dataFiles, userId) => {
-	console.log("data in services", dataBody, dataFiles);
-	let uploadPath = "./uploads/avatars";
-	if (dataFiles || dataBody.avatardefault) {
-		// suprimer les avatar existant s'il y en a
-		let pathAvatar = uploadPath + "/" + userId;
+/**
+ *
+ * @param {file} file le fichier ade l'avatar
+ * @param {string} userId l'id de l'utilisateur
+ *
+ * @returns {object} { erreur: null | erreur, pathAvatar: "" | "/avatars/userId.ext"}
+ */
+exports.saveAvatar = async (file, userId) => {
+	return new Promise((resolve) => {
+		let response = { erreur: null, pathAvatar: "" };
+		// suprimer les avatars existant s'il y en a
+		let pathAvatar = "./uploads/avatars/" + userId;
 		let files = glob.sync(pathAvatar + ".*", {});
-		console.log("files", files);
 		if (files && files.length) {
 			for (let i = 0; i < files.length; i++) {
 				const file = files[i];
 				fs.unlinkSync(file);
 			}
 		}
-		if (dataFiles && dataFiles.avatar) {
-			console.log("req.files", dataFiles);
-			let f = path.basename(dataFiles.avatar.name);
-			let ext = path.extname(f).toLowerCase();
-			pathAvatar += ext;
-			dataFiles.avatar.mv(pathAvatar, async function (err) {
-				if (err) return false;
-				const data = { ...dataBody, avatar: "/avatars/" + userId + ext };
-				console.log("data1", data);
-				const user = await User.update({ _id: userId }, data);
-				return user;
-			});
+		// on crée le fichier dans uploads
+		console.log("file", file);
+		let f = path.basename(file.avatarfile.name);
+		let ext = path.extname(f).toLowerCase();
+		pathAvatar += ext;
+		file.avatarfile.mv(pathAvatar, async function (err) {
+			if (err) response.erreur = err;
+			else response.pathAvatar = "/avatars/" + userId + ext;
+			console.log("response", response);
+			resolve(response);
+		});
+	});
+};
+
+/**
+ *
+ * @param {"string"} avatardefault le nom de l'avatar par défault choisi
+ *
+ * @returns {object} { erreur: null | erreur, pathAvatar: "" | "/avatars/userId.ext"}
+ */
+exports.saveAvatarDefault = async (avatardefault) => {
+	let defaultAvatarSelected = "./public/images/avatars-default/" + avatardefault;
+	let defaultAvatarSelectedDest = "./uploads/avatars/" + avatardefault;
+	//s'il n'existe pas on le copie dans le fichier upload
+	let err = null;
+	if (!fs.existsSync(defaultAvatarSelectedDest)) {
+		await fs.copySync(defaultAvatarSelected, defaultAvatarSelectedDest);
+	}
+	if (err) return { pathAvatar: "", erreur: err };
+	else return { pathAvatar: "/avatars/" + avatardefault, erreur: err };
+};
+
+/**
+ *
+ * @param {request} req
+ * @param {response} res
+ * @param {next} next
+ *
+ * vérifie le token dans le header de la requete s'il n'est pas ok,  renvoie une erreur 401
+ */
+exports.accessCHECK = async (req, res, next) => {
+	if (req.headers["x-auth-accesstoken"] || req.query["token"]) {
+		let token = req.headers["x-auth-accesstoken"] || req.query["token"];
+		console.log("token", token);
+		try {
+			let decoded = jwt.verify(token, process.env.TOKEN_KEY);
+			let user = await User.findOne({ _id: decoded.id });
+			if (!user) return res.status(401).send();
+			req.user = user;
+		} catch (error) {
+			res.status(401).send();
 		}
-		if (dataBody.avatardefault) {
-			console.log("req.body.avatardefault", dataBody.avatardefault);
-			let defaultAvatarSelected = "./public/images/avatars-default/" + dataBody.avatardefault;
-			let defaultAvatarSelectedDest = "./uploads/avatars/" + dataBody.avatardefault;
-			//s'il existe déjà on enregistre juste dans user
-			if (!fs.existsSync(defaultAvatarSelectedDest)) {
-				await fs.copySync(defaultAvatarSelected, defaultAvatarSelectedDest);
-			}
-			const data = { ...dataBody, avatar: "/avatars/" + dataBody.avatardefault };
-			console.log("data2", data);
-			const user = await User.update({ _id: userId }, data);
-			return user;
-		}
+		/* let user = await User.findOne({ _id: req.params.id });
+		if (!user) return res.status(401).send();  */
+
+		next();
 	} else {
-		let user = await User.findOne({ _id: userId });
-		return user;
+		res.status(401).send();
 	}
 };

@@ -31,7 +31,7 @@ function generateToken(user) {
  * @param {response} response
  * @param {function} next
  */
-async function authMiddleware(request, response, next) {
+/* async function authMiddleware(request, response, next) {
 	console.log("je passe");
 	try {
 		let decoded = jwt.verify(req.query.user, process.env.TOKEN_KEY);
@@ -45,15 +45,36 @@ async function authMiddleware(request, response, next) {
 	} catch (error) {
 		response.status(401).send();
 	}
-}
+} */
 
 module.exports.controller = (app) => {
+	/**
+	 * est appelé par le frontend si le token n'est pas valide.
+	 * attend dans req.body.refreshtoken le refreshtoken.
+	 * vérifie le refreshtoken,  s'il est ok, créer de nouveaux token et refreshtoken et les envoie
+	 */
+	app.post("/admin/refreshtoken", async function (req, res) {
+		console.log("coucou dans admin/refreshtoken");
+		let decoded = {};
+		try {
+			decoded = jwt.verify(req.body.refreshtoken, process.env.TOKEN_KEY);
+		} catch (error) {
+			res.status(401).send();
+		}
+		let user = await User.findOne({ _id: decoded.id });
+		if (!user) return res.status(401).send();
+		var token = jwt.sign({ exp: Math.floor(Date.now() / 1000) + 60 * 60, id: user._id }, process.env.TOKEN_KEY);
+		var refreshtoken = jwt.sign({ exp: Math.floor(Date.now() / 1000) + 600 * 600, id: user._id }, process.env.TOKEN_KEY);
+		res.send({ success: "connexion_ok", data: { token, user, refreshtoken } });
+	});
+
 	/**
 	 * création de l'utilisateur plus envoie du mail de confirmation de l'email
 	 * qui contient un lien pour poursuivre l'inscription
 	 */
 	app.post("/createaccount/step1", async function (req, res) {
-		let hash = bcrypt.hashSync(req.body.password1, salt);
+		console.log("req.body", req.body);
+		let hash = bcrypt.hashSync(req.body.password, salt);
 		let newUser = new User();
 		newUser.type = req.body.type;
 		newUser.right = req.body.email === process.env.EMAIL_SUPERADMIN ? "SUPER_ADMIN" : "";
@@ -65,7 +86,7 @@ module.exports.controller = (app) => {
 			.then(() => {
 				let token = jwt.sign({ email: newUser.email, id: newUser._id }, process.env.TOKEN_KEY);
 				let obj = {
-					emailLink: process.env.URL_SITE + "/login/register/" + newUser.type + "/step2?token=" + token,
+					emailLink: process.env.URL_ADMIN + "/createaccount/" + newUser.type + "/step2?token=" + token,
 				};
 				let html = fs.readFileSync("viewsemail/mailCreateaccount.html", "utf8");
 				let email = mustache.render(html, obj, includeMail);
@@ -91,16 +112,16 @@ module.exports.controller = (app) => {
 				});
 				request
 					.then((result) => {
-						res.redirect("/login/register?success=email_inscription_envoye");
+						res.send({ success: "email_inscription_envoye", successtxt: "email d'inscription envoyé" });
 					})
 					.catch((err) => {
 						console.log(err.statusCode);
-						res.redirect("/login/register?error=erreur_survenue");
+						res.send({ err: "user_not_found", errtxt: "Nous sommes désolé, une erreur est survenue" });
 					});
 			})
 			.catch((err) => {
 				console.log("erreur : ", err);
-				res.redirect("/login/register?error=email_not_valid");
+				res.send({ err: "email_not_valid", errtxt: "L'email existe déjà ou n'est pas valide" });
 			});
 	});
 
@@ -108,90 +129,119 @@ module.exports.controller = (app) => {
 	 * Route appelée depuis le lien dans l'email entre l'étape 1 et 2
 	 * si le token est ok renvoie vers l'étape 2
 	 */
-	app.get("/createaccount/step2", async function (req, res) {
+	app.post("/createaccount/step2/buyerandseller", async function (req, res) {
+		let decoded = jwt.verify(req.body.token, process.env.TOKEN_KEY);
+		let user = await User.findOne({ _id: decoded.id });
+		var token = jwt.sign({ exp: Math.floor(Date.now() / 1000) + 60 * 60, id: user._id }, process.env.TOKEN_KEY);
+		var refreshtoken = jwt.sign({ exp: Math.floor(Date.now() / 1000) + 600 * 600, id: user._id }, process.env.TOKEN_KEY);
+		console.log("user dans buyerandseller", user);
 		if (user) {
-			res.redirect("/login/register/" + user.type + "/step2?token=" + req.query.token);
+			res.send({ success: "connexion_ok", data: { token, user, refreshtoken } });
 		} else {
-			response.status(401).send();
+			res.send({ err: "user_not_found", errtxt: "Nous sommes désolé, une erreur est survenue" });
 		}
 	});
 
 	/**
 	 * mise à jour de l'utilisateur lors de l'étape deux d'un acheteur
-	 * champs obligatoire : nom et prénom
+	 *
 	 */
-	app.post("/createaccount/step2/buyer", async function (req, res) {
-		let decoded = jwt.verify(req.body.token, process.env.TOKEN_KEY);
-		let user = await User.findOne({ _id: decoded.id });
-		console.log("req.body step2", req.body);
-		if (user) {
-			await User.updateOne({ _id: user._id }, req.body);
-			let userSaved = Services.saveAvatar(req.body, req.files, user._id);
-			if (!userSaved) return res.status(500).send(err);
-			else {
-				req.session.user = userSaved;
-				res.redirect("/profil");
-			}
-		} else {
-			res.status(401).send();
-		}
+	app.post("/createaccount/step2/buyer", Services.accessCHECK, async function (req, res) {
+		console.log("req.user", req.user);
+		const data = { ...req.body };
+		// création de l'avatar
+		let response = {};
+		console.log("data.avatardefault", data.avatardefault);
+		if (data.avatardefault) {
+			response = await Services.saveAvatarDefault(data.avatardefault);
+		} /* else if (req.files && req.files.avatarfile) {
+			response = await Services.saveAvatar(req.files, req.user._id);
+		} */
+		console.log("response", response);
+		if (response.erreur) res.status(500).send(response.erreur);
+		// mise à jour de l'utilisateur
+		data.avatar = response.pathAvatar;
+		await User.updateOne({ _id: req.user._id }, data);
+		console.log("end");
+		res.send({ success: "user_edit_ok", data: {} });
 	});
 
-	app.post("/createaccount/step2/seller", async function (req, res) {
-		let decoded = jwt.verify(req.body.token, process.env.TOKEN_KEY);
-		let user = await User.findOne({ _id: decoded.id });
-		if (user) {
-			const data = { ...req.body };
-			// création de la boutique avec l'id du user
-			let newShop = new Shop();
-			newShop.name = req.body.shop_name;
-			newShop.address1 = req.body.shop_address1;
-			newShop.address2 = req.body.shop_address2;
-			newShop.zip = req.body.shop_zip;
-			newShop.city = req.body.shop_city;
-			newShop.user = user._id;
-			let shopSaved = await newShop.save();
-			// on récupère l'id de la boutique et on met à jour le user et son avatar
-			data.shop = shopSaved._id;
-			await User.updateOne({ _id: user._id }, data);
-			let userSaved = Services.saveAvatar(data, req.files, user._id);
-			if (!userSaved) return res.status(500).send(err);
-			else {
-				shopSaved.avatar = userSaved.avatar;
-				await Shop.updateOne({ _id: shopSaved._id }, shopSaved);
-				req.session.user = userSaved;
-				res.redirect("/profil");
-			}
-		} else {
-			res.status(401).send();
+	/**
+	 * mise à jour de l'utilisateur lors de l'étape deux d'un acheteur
+	 */
+	app.post("/createaccount/step2/avatar", Services.accessCHECK, async function (req, res) {
+		console.log("req.files", req.files);
+		let response = await Services.saveAvatar(req.files, req.user._id);
+		if (response.erreur) res.status(500).send(response.erreur);
+		await User.updateOne({ _id: req.user._id }, { avatar: response.pathAvatar });
+
+		res.send({ success: "user_edit_ok", data: {} });
+	});
+
+	app.post("/createaccount/step2/seller", Services.accessCHECK, async function (req, res) {
+		let user = await User.findOne({ _id: req.user.id });
+		if (!user) return res.status(401).send();
+		const data = { ...req.body };
+		// création de l'avatar
+		let pathAvatar = "";
+		let response = {};
+		if (data.avatardefault) {
+			response = await Services.saveAvatarDefault(data.avatardefault);
+		} else if (req.files && req.files.avatar) {
+			response = await Services.saveAvatar(req.files, user._id);
 		}
+		if (response.erreur) res.status(500).send(response.erreur);
+		pathAvatar = response.pathAvatar;
+
+		// création de la boutique avec l'id du user
+		let newShop = new Shop();
+		newShop.name = req.body.shop_name;
+		// todo créate slug
+		newShop.address1 = req.body.shop_address1;
+		newShop.address2 = req.body.shop_address2;
+		newShop.zip = req.body.shop_zip;
+		newShop.city = req.body.shop_city;
+		newShop.user = user._id;
+		newShop.avatar = pathAvatar;
+
+		let shopSaved = await newShop.save();
+
+		// on récupère l'id de la boutique et on met à jour le user et son avatar
+		data.shop = shopSaved._id;
+		data.avatar = pathAvatar;
+		await User.updateOne({ _id: user._id }, data);
+		res.send({ success: "user_edit_ok", data: {} });
 	});
 
 	/**
 	 * login
+	 * vérifie si l'utilisateur exite avec cette adresse mail, vérifie le mot de passe
+	 * si c'est ok, créer un token et un refreshtoken et les envoie
 	 */
-	app.post("/login", async function (req, res) {
-		console.log("req.body", req.body);
+	app.post("/admin/login", async function (req, res) {
 		let user = await User.findOne({ email: req.body.email });
-		console.log("user", user);
-		if (!user) res.send("user_not_found");
-
+		if (!user) return res.send({ err: "user_not_found", errtxt: "erreur de connexion" });
+		console.log("user dans admin/login", user);
 		let hash = user.password;
 		const match = await bcrypt.compare(req.body.password, hash);
-
 		if (match) {
-			//let token = generateToken(user);
-			req.session.user = user;
-			res.redirect("/profil");
+			//req.session.user = user;
+			var token = jwt.sign({ exp: Math.floor(Date.now() / 1000) + 10, id: user._id }, process.env.TOKEN_KEY);
+			var refreshtoken = jwt.sign({ exp: Math.floor(Date.now() / 1000) + 600 * 600, id: user._id }, process.env.TOKEN_KEY);
+			res.send({ success: "connexion_ok", data: { token, user, refreshtoken } });
 		} else {
-			res.status(401).send();
+			res.send({ err: "user_not_found", errtxt: "mot de passe ou email incorrecte" });
 		}
 	});
 
 	/**
-	 * supprime le compte d'un utilisateur avec toutes les images qui lui sont liées
+	 * supprime le compte d'un utilisateur avec
+	 * - son avatar,
+	 * - la booutique s'il en a une,
+	 * - les produits de la boutique,
+	 * - et les images de la boutique et des produits
 	 */
-	app.post("/users/delete/:id", async function (req, res) {
+	app.delete("/admin/users/delete/:id", Services.accessCHECK, async function (req, res) {
 		let user = await User.findOne({ _id: req.params.id });
 		//suprimer l'avatar du user
 		let pathAvatar = "./uploads/avatars/" + req.params.id;
@@ -204,9 +254,11 @@ module.exports.controller = (app) => {
 		}
 		// si c'est user type === seller
 		// supprimer la boutique
-		let shop = await Shop.findOne({ _id: user.shop });
-		await shop.deleteOne();
-		// supprimer les images de la boutique et les produits
+		if (user.type == "seller") {
+			let shop = await Shop.findOne({ _id: user.shop });
+			await shop.deleteOne();
+			// supprimer les images de la boutique et les produits
+		}
 
 		// supprimer le user
 		await user.deleteOne();

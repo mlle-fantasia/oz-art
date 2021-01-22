@@ -50,11 +50,13 @@ async function authMiddleware(req, res, next) {
 // les pages publiques
 /* home page. */
 router.get("/", async function (req, res, next) {
+	let connectionLink = process.env.URL_ADMIN;
 	let html = fs.readFileSync("views/index.html", "utf8");
 	let shops = await Shop.find();
 	console.log("qhops", shops);
 	let obj = {
 		shops,
+		connectionLink,
 	};
 	let page = mustache.render(html, obj, include);
 	res.send(page);
@@ -74,18 +76,18 @@ router.get("/blog", function (req, res, next) {
 });
 
 /* page panier */
-router.get("/cart", function (req, res, next) {
+/* router.get("/cart", function (req, res, next) {
 	let html = fs.readFileSync("views/cart.html", "utf8");
 	let page = mustache.render(html, {}, include);
 	res.send(page);
-});
+}); */
 
 /* page login */
-router.get("/login", function (req, res, next) {
+/* router.get("/login", function (req, res, next) {
 	let html = fs.readFileSync("views/login.html", "utf8");
 	let page = mustache.render(html, {}, include);
 	res.send(page);
-});
+}); */
 
 /// les pages de recherche
 router.get("/research", function (req, res, next) {
@@ -98,7 +100,7 @@ router.get("/research", function (req, res, next) {
 
 /* pages d'inscription  */
 /* la page une est la meme pour tout le monde  */
-router.get("/login/register", function (req, res, next) {
+/* router.get("/login/register", function (req, res, next) {
 	// vérifier la query si ya une erreur et la passer à mustache
 	let obj = { form: true };
 	if (req.query.error) {
@@ -111,10 +113,10 @@ router.get("/login/register", function (req, res, next) {
 	let html = fs.readFileSync("views/createaccount1.html", "utf8");
 	let page = mustache.render(html, obj, include);
 	res.send(page);
-});
+}); */
 
 /* étape 2 pour les acheteurs  */
-router.get("/login/register/buyer/step2", async function (req, res, next) {
+/* router.get("/login/register/buyer/step2", async function (req, res, next) {
 	let decoded = jwt.verify(req.query.token, process.env.TOKEN_KEY);
 	let user = await User.findOne({ _id: decoded.id });
 	if (user) {
@@ -128,10 +130,10 @@ router.get("/login/register/buyer/step2", async function (req, res, next) {
 	} else {
 		res.status(401).send();
 	}
-});
+}); */
 
 /* étape 2 pour les venteur  */
-router.get("/login/register/seller/step2", async function (req, res, next) {
+/* router.get("/login/register/seller/step2", async function (req, res, next) {
 	let decoded = jwt.verify(req.query.token, process.env.TOKEN_KEY);
 	let user = await User.findOne({ _id: decoded.id });
 	console.log("token in route", req.query.token);
@@ -147,17 +149,17 @@ router.get("/login/register/seller/step2", async function (req, res, next) {
 	} else {
 		res.status(401).send();
 	}
-});
+}); */
 
 /* étape 3 pour les venteur  */
-router.get("/login/register/seller/step3", function (req, res, next) {
+/* router.get("/login/register/seller/step3", function (req, res, next) {
 	let html = fs.readFileSync("views/createaccount3seller.html", "utf8");
 	let page = mustache.render(html, {}, include);
 	res.send(page);
-});
+}); */
 
 /// les pages privées
-router.get("/profil", authMiddleware, async function (req, res, next) {
+/* router.get("/profil", authMiddleware, async function (req, res, next) {
 	let user = await User.findOne({ _id: req.session.user._id });
 	let obj = {
 		seller: user.type === "seller",
@@ -184,7 +186,7 @@ router.get("/profil/shop", authMiddleware, async function (req, res, next) {
 	let html = fs.readFileSync("views/private/profilshop.html", "utf8");
 	let page = mustache.render(html, obj, include);
 	res.send(page);
-});
+}); */
 
 /// les pages légales
 router.get("/legal-notice", function (req, res, next) {
@@ -213,7 +215,7 @@ router.get("/terms-of-service", function (req, res, next) {
 
 // route particulière avec le nom des boutiques et des produits
 // en dernier pour ne pas créer des conflits route
-router.get("/:shop", function (req, res, next) {
+/* router.get("/:shop", function (req, res, next) {
 	let html = fs.readFileSync("views/shop.html", "utf8");
 	let page = mustache.render(html, {}, include);
 	res.send(page);
@@ -223,6 +225,6 @@ router.get("/:shop/:product", function (req, res, next) {
 	let html = fs.readFileSync("views/product.html", "utf8");
 	let page = mustache.render(html, {}, include);
 	res.send(page);
-});
+}); */
 
 module.exports = router;

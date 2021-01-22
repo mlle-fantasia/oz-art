@@ -2,7 +2,7 @@
 {{>head}}
 {{>header}}
 <div class="container mx-auto min-h-full relative mt-4">
-    <div class="container-avatar-user" style="background-image: url({{user.avatar}});">
+    <div class="container-avatar-user avatar-width-200 avatar-absolute" style="background-image: url({{user.avatar}});">
         <!-- <img  class="rounded-full w-full h-full" src="/images/pexels-cottonbro-4620624.jpg" alt="photo de profil"> -->
     </div>
     
@@ -17,11 +17,16 @@
     <div class="mt-4 p-8 bg-creme rounded  cursor-pointer">
         <form action="/users/edit/avatar/{{user._id}}" method="post" novalidate="novalidate" enctype="multipart/form-data" id="form-avatar">
         <div class="text-xl font-semibold mb-3"> Avatar </div> 
-        <div class="text-md mb-2"> Ou choisissez votre propre avatar</div> 
-            <input name="avatar" type="file" id="avatar" size="40"
-            class="w-full shadow appearance-none border rounded w-40 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                    accept="image/png, image/jpeg">
-                    <button class="btn-primary mt-2" type="submit">Enregistrer</button>
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <input name="avatar" type="file" id="avatar" size="40"
+                class="w-full shadow appearance-none border rounded w-40 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        accept="image/png, image/jpeg">
+            </div>
+            <div id="img-avatar" class="container-avatar-user avatar-width-150" >
+            </div>
+        </div>
+        <button class="btn-primary mt-2" type="submit">Enregistrer</button>
     </form>
     </div>
     <div class="mt-4 p-8 bg-creme rounded cursor-pointer">
@@ -72,8 +77,8 @@
 
     <div class="my-4 p-8 bg-creme rounded cursor-pointer">
         <div class="text-xl font-semibold"> Autres actions </div> 
-        <form action="/users/delete/{{user._id}}" method="post" novalidate="novalidate" enctype="multipart/form-data" id="form-user">
-            <button class="btn-primary mt-2" type="submit">Supprimer ma boutique</button>
+        <form action="/users/delete/{{user._id}}" method="post" novalidate="novalidate" enctype="multipart/form-data" id="form-delete">
+            <button id="btn_delete" class="btn-primary mt-2" type="button">Supprimer ma boutique</button>
         </form>
     </div>
 
@@ -93,14 +98,47 @@
         })
         const formAvatar = document.querySelector("#form-avatar");
         formAvatar.addEventListener("submit", function(e){
-            e.target.submit();
+            let fileAvatar = document.getElementById('avatar')
+            if(fileAvatar){
+                e.target.submit();
+            }else{
+
+            }
         })
+
+        //affichage avatar lorsque l'on choisi un fichier
+        let imgAvatar = document.getElementById('img-avatar');
+        let fileAvatar = document.getElementById('avatar')
+        fileAvatar.addEventListener("change", (e)=>{
+            let file = e.target.files[0]
+            var reader = new FileReader();
+            reader.onload = (function(theFile) {
+            return function(e) {
+                imgAvatar.style["background-image"] = "url(" + e.target.result+")"
+            };
+            })(file);
+            reader.readAsDataURL(file);
+        })
+
+        // confirm dialog suppression shop
+        const btnDelete = document.getElementById("btn_delete");
+        btnDelete.addEventListener("click", function(e){
+            let confirmDialogTxt = `Etes vous sure de vouloir supprimer votre boutique ? <br/> 
+                            Votre compte utilisateur ne sera pas supprimé, vous pourrez vous connecter en temps qu'utilisateur normal.`;
+                            messageDialog("confirm", "Confirmation", confirmDialogTxt, "Supprimer", deleteShop)
+        }) 
         
        
     });
 
     function validFormUser() {
         return true;
+    }
+    function deleteShop(){
+        console.log('suppression de votre boutique',);
+       /*  const formDelete = document.querySelector("#form-delete");
+        formDelete.submit() */
+
     }
 
 </script>

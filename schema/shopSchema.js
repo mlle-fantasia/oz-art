@@ -11,6 +11,11 @@ const shopSchema = new mongoose.Schema({
 	name: {
 		type: String,
 		required: [false, ""],
+		unique: true,
+	},
+	description: {
+		type: String,
+		required: [false, ""],
 	},
 	avatar: {
 		type: String,
@@ -32,7 +37,32 @@ const shopSchema = new mongoose.Schema({
 		type: String,
 		required: [false, ""],
 	},
+	img_user: {
+		type: String,
+		required: [false, ""],
+	},
+	description_user: {
+		type: String,
+		required: [false, ""],
+	},
+	nb_products: {
+		type: Number,
+		required: [false, 0],
+	},
+	nb_infavori: {
+		type: Number,
+		required: [false, 0],
+	},
+	img_gate: {
+		type: String,
+		required: [false, ""],
+	},
+	img_couv: {
+		type: String,
+		required: [false, ""],
+	},
 });
 
+shopSchema.plugin(uniqueValidator);
 const Shop = mongoose.model("shop", shopSchema, "shop");
 module.exports = Shop;

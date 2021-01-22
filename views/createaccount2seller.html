@@ -82,13 +82,12 @@
             Avatar de la boutique *
           </label>
             <input name="avatar" type="file" id="avatar" size="40"
-            class="w-full shadow bg-white appearance-none border rounded w-40 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            class="w-full shadow bg-white appearance-none border rounded w-40 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline truncate"
                     accept="image/png, image/jpeg">
         </div>
         <div >
-          <div id="img-avatar" class="container-avatar-user-createshop" >
+          <div id="img-avatar" class="container-avatar-user avatar-width-150" >
           </div>
-          <!-- <img  src="" alt="">  --> 
         </div>
       </div>
       <div class="grid grid-cols-2 gap-4 mt-2">
@@ -102,34 +101,6 @@
            
         </div>
     </div>
-    <div class="grid grid-cols-2 gap-4 mt-2">
-      <div>
-          <label class="block text-gray-700 text-sm font-bold mb-2" for="shop_address1">
-              Adresse 
-            </label>
-            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="shop_address1" type="text" name="shop_address1" value="{{shop.address1}}">
-      </div>
-      <div>
-          <label class="block text-gray-700 text-sm font-bold mb-2" for="shop_address2">
-              ligne complémentaire
-            </label>
-            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="shop_address2" type="text" name="shop_address2" value="{{shop.address2}}">
-      </div>
-  </div>
-  <div class="grid grid-cols-2 gap-4 mt-2">
-      <div>
-          <label class="block text-gray-700 text-sm font-bold mb-2" for="shop_zip">
-              Code postal 
-            </label>
-            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="shop_zip" type="text" name="shop_zip" value="{{shop.zip}}">
-      </div>
-      <div>
-          <label class="block text-gray-700 text-sm font-bold mb-2" for="city">
-              Ville
-            </label>
-            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="shop_city" type="text" name="shop_city" value="{{shop.city}}">
-      </div>
-  </div>
       <div>
         <button class="btn-primary mt-2" type="submit">Enregistrer</button>
       </div>
