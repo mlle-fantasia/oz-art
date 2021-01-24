@@ -33,19 +33,6 @@ function errorText(value) {
 		if (element.value === value) return element.text;
 	}
 }
-/**
- * vérifie le cookie passé dans la request.
- * middleware appeler sur toute les routes qui necessitent une authentification
- * @param {request} req
- * @param {response} res
- * @param {function} next
- */
-async function authMiddleware(req, res, next) {
-	if (!req.session || !req.session.user) return res.status(401).send();
-	let user = await User.findOne({ _id: req.session.user._id });
-	if (!user) return res.status(401).send();
-	next();
-}
 
 // les pages publiques
 /* home page. */

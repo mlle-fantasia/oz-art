@@ -66,18 +66,19 @@ exports.saveAvatarDefault = async (avatardefault) => {
 exports.accessCHECK = async (req, res, next) => {
 	if (req.headers["x-auth-accesstoken"] || req.query["token"]) {
 		let token = req.headers["x-auth-accesstoken"] || req.query["token"];
-		console.log("token", token);
+		console.log("token", token, process.env.TOKEN_KEY);
+		let decoded = {};
 		try {
-			let decoded = jwt.verify(token, process.env.TOKEN_KEY);
+			decoded = jwt.verify(token, process.env.TOKEN_KEY);
+			console.log("decoded", decoded);
+			if (!decoded) res.status(401).send();
 			let user = await User.findOne({ _id: decoded.id });
-			if (!user) return res.status(401).send();
+			if (!user) return res.send({ err: "user_not_found", errtxt: "utilisateur non trouvé" });
 			req.user = user;
 		} catch (error) {
-			res.status(401).send();
+			console.log("error", error);
+			return res.status(401).send();
 		}
-		/* let user = await User.findOne({ _id: req.params.id });
-		if (!user) return res.status(401).send();  */
-
 		next();
 	} else {
 		res.status(401).send();

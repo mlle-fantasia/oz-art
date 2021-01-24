@@ -97,19 +97,3 @@ mongoose.connect(
 		useCreateIndex: true,
 	}
 );
-userMarina();
-
-/**
- * on verifie si l'utilisateur marina existe si non on le créer
- */
-async function userMarina() {
-	/* let user = await User.findOne({ name: "front" });
-	if (!user) {
-		user = new User({
-			name: "front",
-			firstname: "marina",
-			email: "marinafront@hotmail.fr",
-			created: Date.now(),
-		}).save();
-	} */
-}

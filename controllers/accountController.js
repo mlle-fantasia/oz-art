@@ -14,14 +14,6 @@ const includeMail = {
 	header: fs.readFileSync("viewsemail/headerMail.html", "utf8"),
 	footer: fs.readFileSync("viewsemail/footerMail.html", "utf8"),
 };
-/**
- * génère un token avec une durée de validité de 1 heure
- * @returns le tocken généré
- */
-function generateToken(user) {
-	var jeton = jwt.sign({ exp: Math.floor(Date.now() / 1000) + 60 * 60, user_id: user._id }, process.env.TOKEN_KEY);
-	return jeton;
-}
 
 /**
  * vérifie le token passé dans la request.
@@ -59,10 +51,10 @@ module.exports.controller = (app) => {
 		try {
 			decoded = jwt.verify(req.body.refreshtoken, process.env.TOKEN_KEY);
 		} catch (error) {
-			res.status(401).send();
+			return res.status(401).send();
 		}
 		let user = await User.findOne({ _id: decoded.id });
-		if (!user) return res.status(401).send();
+		if (!user) return res.send({ err: "user_not_found", errtxt: "utilisateur non trouvé" });
 		var token = jwt.sign({ exp: Math.floor(Date.now() / 1000) + 60 * 60, id: user._id }, process.env.TOKEN_KEY);
 		var refreshtoken = jwt.sign({ exp: Math.floor(Date.now() / 1000) + 600 * 600, id: user._id }, process.env.TOKEN_KEY);
 		res.send({ success: "connexion_ok", data: { token, user, refreshtoken } });
@@ -132,6 +124,7 @@ module.exports.controller = (app) => {
 	app.post("/createaccount/step2/buyerandseller", async function (req, res) {
 		let decoded = jwt.verify(req.body.token, process.env.TOKEN_KEY);
 		let user = await User.findOne({ _id: decoded.id });
+		console.log("decoded", decoded);
 		var token = jwt.sign({ exp: Math.floor(Date.now() / 1000) + 60 * 60, id: user._id }, process.env.TOKEN_KEY);
 		var refreshtoken = jwt.sign({ exp: Math.floor(Date.now() / 1000) + 600 * 600, id: user._id }, process.env.TOKEN_KEY);
 		console.log("user dans buyerandseller", user);
@@ -179,15 +172,14 @@ module.exports.controller = (app) => {
 	});
 
 	app.post("/createaccount/step2/seller", Services.accessCHECK, async function (req, res) {
+		console.log("req.user", req.user);
 		let user = await User.findOne({ _id: req.user.id });
-		if (!user) return res.status(401).send();
+		if (!user) return res.send({ err: "user_not_found", errtxt: "erruer lors de la création du compte" });
 		const data = { ...req.body };
 		// création de l'avatar
 		let pathAvatar = "";
 		let response = {};
-		if (data.avatardefault) {
-			response = await Services.saveAvatarDefault(data.avatardefault);
-		} else if (req.files && req.files.avatar) {
+		if (req.files && req.files.avatar) {
 			response = await Services.saveAvatar(req.files, user._id);
 		}
 		if (response.erreur) res.status(500).send(response.erreur);
@@ -226,12 +218,33 @@ module.exports.controller = (app) => {
 		const match = await bcrypt.compare(req.body.password, hash);
 		if (match) {
 			//req.session.user = user;
-			var token = jwt.sign({ exp: Math.floor(Date.now() / 1000) + 10, id: user._id }, process.env.TOKEN_KEY);
-			var refreshtoken = jwt.sign({ exp: Math.floor(Date.now() / 1000) + 600 * 600, id: user._id }, process.env.TOKEN_KEY);
+			//var token = jwt.sign({ exp: Math.floor(Date.now() / 1000) + 60 * 60, id: user._id }, process.env.TOKEN_KEY);
+			//var refreshtoken = jwt.sign({ exp: Math.floor(Date.now() / 1000) + 600 * 600, id: user._id }, process.env.TOKEN_KEY);
+			var token = jwt.sign({ id: user._id }, process.env.TOKEN_KEY, { expiresIn: 60 * 60 });
+			var refreshtoken = jwt.sign({ id: user._id }, process.env.TOKEN_KEY, { expiresIn: 600 * 600 });
 			res.send({ success: "connexion_ok", data: { token, user, refreshtoken } });
 		} else {
 			res.send({ err: "user_not_found", errtxt: "mot de passe ou email incorrecte" });
 		}
+	});
+
+	/**
+	 * login
+	 * vérifie si l'utilisateur exite avec cette adresse mail, vérifie le mot de passe
+	 * si c'est ok, créer un token et un refreshtoken et les envoie
+	 */
+	app.post("/admin/autologin", Services.accessCHECK, async function (req, res) {
+		console.log("admin/autologin");
+		/* let decoded = {};
+		try {
+			decoded = jwt.verify(req.body.token, process.env.TOKEN_KEY);
+		} catch (error) {
+			return res.status(401).send();
+		}
+		let user = await User.findOne({ _id: decoded.id });
+		if (!user) return res.send({ err: "user_not_found", errtxt: "utilisateur non trouvé" }); */
+
+		res.send({ success: "connexion_ok", data: req.user });
 	});
 
 	/**
