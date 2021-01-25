@@ -25,21 +25,23 @@ module.exports.controller = (app) => {
 		const avatardefault = req.body.avatardefault;
 		let pathAvatar = "";
 		let response = {};
-		console.log("req.files", req.files);
 		if (avatardefault) {
 			response = await Services.saveAvatarDefault(avatardefault);
 		} else if (req.files && req.files.avatarfile) {
 			response = await Services.saveAvatar(req.files, user._id);
 		}
 		if (response.erreur) res.status(500).send(response.erreur);
-		pathAvatar = response.pathAvatar;
-		console.log("pathAvatar", pathAvatar);
-		// on met à jour juste le user.avatar
-		await User.updateOne({ _id: user._id }, { avatar: pathAvatar });
-		// si c'est un vendeur, on met à jour aussi shop.avatar
-		if (user.type === "seller") await Shop.updateOne({ _id: user.shop }, { avatar: pathAvatar });
-
-		res.send({ success: "user_get_ok", data: user });
+		if (response.pathAvatar) {
+			pathAvatar = response.pathAvatar;
+			console.log("pathAvatar", pathAvatar);
+			// on met à jour juste le user.avatar
+			await User.updateOne({ _id: user._id }, { avatar: pathAvatar });
+			// si c'est un vendeur, on met à jour aussi shop.avatar
+			if (user.type === "seller") await Shop.updateOne({ _id: user.shop }, { avatar: pathAvatar });
+			res.send({ success: "user_get_ok", data: user });
+		} else {
+			res.send({ err: "error_avatar", errtxt: "Une erreur s'est produite : avatar non enregistré" });
+		}
 	});
 
 	app.put("/users/edit/:id", Services.accessCHECK, async function (req, res) {
@@ -48,9 +50,10 @@ module.exports.controller = (app) => {
 		if (!user) return res.status(401).send(); */
 
 		await User.updateOne({ _id: req.params.id }, data);
+		// si c'est un vendeur, on met à jour aussi shop.email
+		if (req.user.type === "seller") await Shop.updateOne({ _id: req.user.shop }, { email: data.email });
 
 		let user = await User.findOne({ _id: req.params.id });
-
 		res.send({ success: "user_edit_ok", data: { user } });
 	});
 };

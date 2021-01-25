@@ -8,6 +8,10 @@ const shopSchema = new mongoose.Schema({
 		required: [false, ""],
 	},
 	user: { type: Schema.Types.ObjectId, ref: "user" },
+	email: {
+		type: String,
+		required: [false, ""],
+	},
 	name: {
 		type: String,
 		required: [false, ""],

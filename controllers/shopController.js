@@ -20,6 +20,17 @@ module.exports.controller = (app) => {
 		res.send({ shop });
 	});
 
+	app.put("/admin/shops/:id", Services.accessCHECK, async function (req, res) {
+		const data = { ...req.body };
+		console.log("data", data);
+		await Shop.updateOne({ _id: req.params.id }, data);
+		// si c'est un vendeur, on met à jour aussi shop.email
+		if (req.user.type === "seller") await User.updateOne({ _id: data.user }, { email: data.email });
+
+		let shop = await Shop.findOne({ _id: req.params.id });
+		res.send({ success: "shop_edit_ok", data: { shop } });
+	});
+
 	/* app.post("/shops/edit/avatar/:id", async function (req, res) {
 		let user = await User.findOne({ _id: req.params.id });
 		if (!user) return res.status(401).send();
