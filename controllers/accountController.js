@@ -46,12 +46,13 @@ module.exports.controller = (app) => {
 	 * vérifie le refreshtoken,  s'il est ok, créer de nouveaux token et refreshtoken et les envoie
 	 */
 	app.post("/admin/refreshtoken", async function (req, res) {
-		console.log("coucou dans admin/refreshtoken");
+		console.log("coucou dans admin/refreshtoken", req.body.refreshtoken);
 		let decoded = {};
 		try {
 			decoded = jwt.verify(req.body.refreshtoken, process.env.TOKEN_KEY);
 		} catch (error) {
-			return res.status(401).send();
+			console.log("erreur", error);
+			return res.send({ err: "refreshtoken_expired", errtxt: "refreshtoken expiré" });
 		}
 		let user = await User.findOne({ _id: decoded.id });
 		if (!user) return res.send({ err: "user_not_found", errtxt: "utilisateur non trouvé" });
