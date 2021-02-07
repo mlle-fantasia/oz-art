@@ -119,7 +119,7 @@ module.exports.controller = (app) => {
 	app.delete("/admin/products/:id", Services.accessCHECK, async function (req, res) {
 		let product = await Product.findOne({ _id: req.params.id });
 		if (!product) return res.send({ err: "product_not_found", errtxt: "erreur lors de la suppression du produit" });
-
+		console.log("product", product);
 		//suprimer les images du produits
 		fs.ensureDirSync("./uploads/products/" + product._id);
 		let tabImages = glob.sync("./uploads/products/" + product._id + "/*", {});
@@ -133,7 +133,7 @@ module.exports.controller = (app) => {
 		}
 
 		//on met à jour le nombre de produit dans la shop
-		let shop = await Shop.findOne({ _id: Product.shop }).exec();
+		let shop = await Shop.findOne({ _id: product.shop }).exec();
 		await Shop.updateOne({ _id: shop._id }, { nb_products: shop.nb_products - 1 });
 
 		// supprimer le produit
