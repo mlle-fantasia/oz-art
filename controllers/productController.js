@@ -9,13 +9,24 @@ const path = require("path");
 var glob = require("glob");
 
 module.exports.controller = (app) => {
+	// pas encore utilisé
 	app.get("/products", async function (req, res) {
 		let products = await Product.find().exec();
 		res.send({ products });
 	});
 
+	app.get("/admin/products/:id", async function (req, res) {
+		let product = await Product.findOne({ _id: req.params.id });
+
+		res.send({ product });
+	});
+
+	/**
+	 * récupérer tous les produits  d'une boutique que le nom et et la caractéristique
+	 * id de la boutique passé en paramètre
+	 */
 	app.get("/admin/shops/:id/products", Services.accessCHECK, async function (req, res) {
-		let products = await Product.find({ shop: req.params.id }).exec();
+		let products = await Product.find({ shop: req.params.id }, "name").exec();
 
 		res.send({ products });
 	});
@@ -27,9 +38,6 @@ module.exports.controller = (app) => {
 		const dataProduct = { ...req.body };
 		console.log("data", dataProduct);
 		await Product.updateOne({ _id: req.params.id }, dataProduct);
-		//on met à jour le nombre de produit dans la shop
-		/* 		let shop = await Shop.findOne({ _id: dataProduct._id }).exec();
-		await Shop.updateOne({ _id: shop._id }, { nb_products: shop.nb_products + 1 }); */
 
 		res.send({ success: "product_updated" });
 	});
@@ -52,45 +60,54 @@ module.exports.controller = (app) => {
 		newProduct.save();
 		//on met à jour le nombre de produit dans la shop
 		let shop = await Shop.findOne({ _id: newProduct.shop }).exec();
-		await Shop.updateOne({ _id: shop._id }, { nb_products: shop.nb_products + 1 });
+		let newNbProducts = 1;
+		if (shop.nb_products) newNbProducts = shop.nb_products + 1;
+		await Shop.updateOne({ _id: shop._id }, { nb_products: newNbProducts });
 
-		res.send({ success: "product_updated" });
+		res.send({ success: "post_product_success", product: newProduct });
 	});
 
 	/**
-	 * création ou modification d'images d'un produit, id du produit passé dans la route
+	 * création ou modification d'images d'un produit,
+	 * id du produit passé dans la route
 	 */
 	app.post("/admin/products/:id/images", Services.accessCHECK, async function (req, res) {
 		let product = await Product.findOne({ _id: req.params.id });
 		if (!product) return res.send({ err: "product_not_found", errtxt: "erreur lors de l'enregistrement des images" });
 
-		fs.ensureDirSync("./uploads/product");
-		fs.ensureDirSync("./uploads/product/" + product._id);
+		fs.ensureDirSync("./uploads/products");
+		fs.ensureDirSync("./uploads/products/" + product._id);
 
-		let files = glob.sync("./uploads/product/" + product._id + "/*", {});
-		let nbImage = files.length;
-		console.log("nbImage", nbImage);
+		let tabImages = glob.sync("./uploads/products/" + product._id + "/*", {});
+		const nbImages = tabImages.length;
 		let tabErr = [];
+		let mainPicture = "";
+		// si l'utilisateur envoie qu'une image, req.files.images est un objet donc  il faut le transformer en tableau
+		if (!Array.isArray(req.files.images)) req.files.images = [req.files.images];
+
 		if (req.files && req.files.images) {
-			console.log("req.files.images", req.files.images);
 			for (let i = 0; i < req.files.images.length; i++) {
-				const image = req.files.images[i];
+				let image = req.files.images[i];
 				// on crée le fichier dans uploads
 				let f = path.basename(image.name);
 				let ext = path.extname(f).toLowerCase();
-				path = "./uploads/product/" + product._id + "/" + product._id + "_" + i + ext;
-				image.mv(path, async function (err) {
+				let indexName = i + nbImages + 1;
+				let pathImage = "./uploads/products/" + product._id + "/" + indexName + ext;
+				image.mv(pathImage, async function (err) {
 					if (err) tabErr.push(err);
 				});
+				if (indexName === 1) mainPicture = "/products/" + product._id + "/" + indexName + ext;
+				tabImages.push("/products/" + product._id + "/" + indexName + ext);
 			}
+			// ajout des images dans propriété pictures du produit
+			// s'il n'y avait pas d'image, on met à jour la propriétée main_pisture
+			let dataImage = { pictures: tabImages };
+			if (nbImages === 0) dataImage.main_picture = mainPicture;
+			await Product.updateOne({ _id: product._id }, dataImage);
 		}
 		if (tabErr.length) {
 			return res.send({ err: "post_productimage_error", errtxt: "erreur lors de l'enregistrement des images" });
 		} else {
-			//  on met à jour juste le user.avatar
-			pathMainImage = "/product/" + product._id + "/" + product._id + "_0" + ext;
-			await Product.updateOne({ _id: product._id }, { main_picture: pathMainImage });
-
 			res.send({ success: "post_productimage_success" });
 		}
 	});
@@ -102,15 +119,22 @@ module.exports.controller = (app) => {
 	app.delete("/admin/products/:id", Services.accessCHECK, async function (req, res) {
 		let product = await Product.findOne({ _id: req.params.id });
 		if (!product) return res.send({ err: "product_not_found", errtxt: "erreur lors de la suppression du produit" });
+
 		//suprimer les images du produits
-		/* let pathAvatar = "./uploads/avatars/" + req.params.id;
-		let files = glob.sync(pathAvatar + ".*", {});
-		if (files && files.length) {
-			for (let i = 0; i < files.length; i++) {
-				const file = files[i];
-				fs.unlinkSync(file);
+		fs.ensureDirSync("./uploads/products/" + product._id);
+		let tabImages = glob.sync("./uploads/products/" + product._id + "/*", {});
+		if (tabImages && tabImages.length) {
+			for (let i = 0; i < tabImages.length; i++) {
+				const img = tabImages[i];
+				fs.unlinkSync(img);
 			}
-		} */
+			// mise à jour du produit avec un tableau d'image vide
+			await Product.updateOne({ _id: product._id }, { pictures: [] });
+		}
+
+		//on met à jour le nombre de produit dans la shop
+		let shop = await Shop.findOne({ _id: Product.shop }).exec();
+		await Shop.updateOne({ _id: shop._id }, { nb_products: shop.nb_products - 1 });
 
 		// supprimer le produit
 		await product.deleteOne();
