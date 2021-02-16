@@ -8,11 +8,20 @@ const path = require("path");
 var glob = require("glob");
 
 module.exports.controller = (app) => {
-	app.get("/shops", async function (req, res) {
+	//// routes du site
+	app.get("/site/shops", async function (req, res) {
 		let shops = await Shop.find().exec();
 		res.send({ shops });
 	});
 
+	app.get("/site/shops/:slug", async function (req, res) {
+		let shop = await Shop.findOne({ slug: req.params.slug }).exec();
+		if (!shop) return res.send({ err: "not_found", errtxt: "la boutique n'existe pas" });
+		console.log("shop", shop);
+		res.send({ shop });
+	});
+
+	//// routes de l'espace admin
 	app.get("/admin/shops/:id", Services.accessCHECK, async function (req, res) {
 		let shop = await Shop.findOne({ _id: req.params.id }).exec();
 		if (!shop) return res.send({ err: "not_found", errtxt: "la boutique n'existe pas" });

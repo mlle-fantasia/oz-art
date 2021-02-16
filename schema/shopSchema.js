@@ -17,6 +17,11 @@ const shopSchema = new mongoose.Schema({
 		required: [false, ""],
 		unique: true,
 	},
+	slug: {
+		type: String,
+		required: [false, ""],
+		unique: true,
+	},
 	description: {
 		type: String,
 		required: [false, ""],

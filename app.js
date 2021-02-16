@@ -14,8 +14,6 @@ const cors = require("cors");
 const User = require("./schema/userSchema.js");
 require("dotenv").config();
 
-var indexRouter = require("./routes/index");
-var usersRouter = require("./routes/users");
 var session = require("express-session");
 global.Services = require("./utils/Services");
 
@@ -72,9 +70,6 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 fs.ensureDirSync("./uploads");
 app.use(express.static(path.join(__dirname, "uploads")));
-
-app.use("/", indexRouter);
-app.use("/users", usersRouter);
 
 // on ajoute les controllers
 fs.readdirSync("controllers").forEach((file) => {

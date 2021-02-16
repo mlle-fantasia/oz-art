@@ -9,6 +9,7 @@ const mustache = require("mustache");
 const uuid = require("uuid");
 const path = require("path");
 var glob = require("glob");
+var slug = require("slug");
 
 const includeMail = {
 	header: fs.readFileSync("viewsemail/headerMail.html", "utf8"),
@@ -189,7 +190,7 @@ module.exports.controller = (app) => {
 		// création de la boutique avec l'id du user
 		let newShop = new Shop();
 		newShop.name = req.body.shop_name;
-		// todo créate slug
+		newShop.slug = slug(req.body.shop_name);
 		newShop.address1 = req.body.shop_address1;
 		newShop.address2 = req.body.shop_address2;
 		newShop.zip = req.body.shop_zip;
