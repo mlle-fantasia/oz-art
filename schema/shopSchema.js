@@ -54,19 +54,33 @@ const shopSchema = new mongoose.Schema({
 		type: String,
 		required: [false, ""],
 	},
-	nb_products: {
-		type: Number,
-		required: [false, 0],
+	products: {
+		type: [{ type: Schema.Types.ObjectId, ref: "product" }],
+		required: [false, []],
 	},
-	nb_infavori: {
-		type: Number,
-		required: [false, 0],
+	// ceux qui aime la boutique
+	admirers: {
+		type: [{ type: Schema.Types.ObjectId, ref: "user" }],
+		required: [false, []],
+	},
+	// ceux qui sont inscri à la new letters
+	followers: {
+		type: [{ type: Schema.Types.ObjectId, ref: "user" }],
+		required: [false, []],
 	},
 	img_gate: {
 		type: String,
 		required: [false, ""],
 	},
 	img_couv: {
+		type: String,
+		required: [false, ""],
+	},
+	img_seller: {
+		type: String,
+		required: [false, ""],
+	},
+	description_seller: {
 		type: String,
 		required: [false, ""],
 	},

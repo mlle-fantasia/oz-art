@@ -16,6 +16,8 @@ const userSchema = new mongoose.Schema({
 		required: [false, ""],
 	},
 	shop: { type: Schema.Types.ObjectId, ref: "shop" },
+	favorite_shop: { type: [{ type: Schema.Types.ObjectId, ref: "shop" }], required: [false, []] },
+	favorite_product: { type: [{ type: Schema.Types.ObjectId, ref: "product" }], required: [false, []] },
 	name: {
 		type: String,
 		required: [false, ""],

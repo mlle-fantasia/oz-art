@@ -2,8 +2,9 @@ const bcrypt = require("bcrypt");
 const salt = bcrypt.genSaltSync(10);
 const fs = require("fs-extra");
 const User = require("../schema/userSchema.js");
-const Order = require("../schema/userSchema.js");
+const Order = require("../schema/orderSchema.js");
 const Shop = require("../schema/shopSchema.js");
+const Product = require("../schema/productSchema.js");
 const mailjet = require("node-mailjet").connect(process.env.MAILHET_APIKEY, process.env.MAILHET_SECRETKEY);
 var jwt = require("jsonwebtoken");
 const path = require("path");
@@ -18,6 +19,64 @@ module.exports.controller = (app) => {
 		let user = await User.findOne({ _id: req.params.id }).exec();
 		if (!user) return res.send({ err: "user_not_found", errtxt: "utilisateur non trouvé" });
 		res.send({ success: "user_get_ok", data: user });
+	});
+	/**
+	 * pour le panier étape 2
+	 * vérifie l'id de la commande si pas ok retourn sur panier étape 1
+	 */
+	app.get("/site/orders/:id", async function (req, res) {
+		let order = await Order.findOne({ _id: req.params.id }).populate("user").populate("orderlines.product").exec();
+		if (!order) return res.send({ err: "order_not_found", errtxt: "order non trouvé" });
+		res.send({ success: "order_get_ok", order });
+	});
+
+	app.post("/site/orders/create", async function (req, res) {
+		console.log("req.body", req.body);
+		let decoded;
+		try {
+			decoded = jwt.verify(req.body.userToken, process.env.TOKEN_KEY);
+		} catch (error) {
+			// pas de token ou token faux
+			console.log("catch erreur", error);
+			res.redirect(process.env.URL_SITE + "/panier?success=false&action=order");
+			return;
+		}
+
+		// création d'une comande
+		// préparation du tableau de produits et recalcul des totaux
+		let tabProduct = [];
+		let cart = JSON.parse(req.body.cart);
+		let tt_ttc = 0,
+			tt_tva = 0,
+			tt_taxes = 0;
+		for (let i = 0; i < cart.length; i++) {
+			const line = cart[i];
+			let row_pr = await Product.findOne({ _id: line.product.id }).exec();
+			if (!row_pr) continue;
+			tt_ttc += row_pr.price * line.quantity;
+			tt_taxes += row_pr.port;
+			tt_tva += row_pr.price * (row_pr.tva / 1000);
+			tabProduct.push({
+				product: row_pr._id,
+				quantity: line.quantity,
+			});
+		}
+
+		// définition et enregistrement de la comande
+		let newOrder = new Order();
+		newOrder.status = "created";
+		newOrder.user = decoded.id;
+		newOrder.created = new Date();
+		newOrder.orderlines = tabProduct;
+		newOrder.total_global = tt_ttc + tt_taxes;
+		newOrder.total_ttc = tt_ttc;
+		newOrder.total_tva = tt_tva;
+		newOrder.shipping_taxes = tt_taxes;
+
+		console.log("newOrder", newOrder);
+		let order = await newOrder.save();
+
+		res.redirect(process.env.URL_SITE + "/panier/step2/" + order._id);
 	});
 
 	app.post("/admin/orders/:id", Services.accessCHECK, async function (req, res) {

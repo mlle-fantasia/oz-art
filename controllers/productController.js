@@ -9,13 +9,26 @@ const path = require("path");
 var glob = require("glob");
 
 module.exports.controller = (app) => {
-	// pas encore utilisé
-	app.get("/products", async function (req, res) {
+	// routes site
+	app.get("/site/products", async function (req, res) {
+		console.log("coucou");
 		let products = await Product.find().exec();
 		res.send({ products });
 	});
 
-	app.get("/admin/products/:id", async function (req, res) {
+	// routes admin
+	app.get("/admin/products", Services.accessCHECK, async function (req, res) {
+		let products = [];
+		if (req.query.cart) {
+			console.log("req.query.cart", req.query);
+		} else {
+			//products = await Product.find().exec();
+		}
+
+		res.send({ products });
+	});
+
+	app.get("/admin/products/:id", Services.accessCHECK, async function (req, res) {
 		let product = await Product.findOne({ _id: req.params.id });
 
 		res.send({ product });
@@ -57,12 +70,15 @@ module.exports.controller = (app) => {
 		newProduct.shop = req.params.id;
 
 		console.log("newProduct", newProduct);
-		newProduct.save();
+		let product = await newProduct.save();
+
 		//on met à jour le nombre de produit dans la shop
-		let shop = await Shop.findOne({ _id: newProduct.shop }).exec();
-		let newNbProducts = 1;
-		if (shop.nb_products) newNbProducts = shop.nb_products + 1;
-		await Shop.updateOne({ _id: shop._id }, { nb_products: newNbProducts });
+		let shop = await Shop.findOne({ _id: product.shop }).exec();
+		/* let newNbProducts = 1;
+		if (shop.nb_products) newNbProducts = shop.nb_products + 1; */
+		console.log("shop.products", shop.products, product._id);
+
+		await Shop.updateOne({ _id: shop._id }, { $push: { products: product._id } });
 
 		res.send({ success: "post_product_success", product: newProduct });
 	});
@@ -123,18 +139,20 @@ module.exports.controller = (app) => {
 		//suprimer les images du produits
 		fs.ensureDirSync("./uploads/products/" + product._id);
 		let tabImages = glob.sync("./uploads/products/" + product._id + "/*", {});
+		//let dirImages = "./uploads/products/" + product._id;
+		//fs.rmdirSync(dirImages, { recursive: true }); // avec node js 12
 		if (tabImages && tabImages.length) {
+			// on supprime chaque image
 			for (let i = 0; i < tabImages.length; i++) {
 				const img = tabImages[i];
 				fs.unlinkSync(img);
 			}
-			// mise à jour du produit avec un tableau d'image vide
-			await Product.updateOne({ _id: product._id }, { pictures: [] });
+			// on supprime le répertoire
+			fs.rmdirSync("./uploads/products/" + product._id);
 		}
 
-		//on met à jour le nombre de produit dans la shop
-		let shop = await Shop.findOne({ _id: product.shop }).exec();
-		await Shop.updateOne({ _id: shop._id }, { nb_products: shop.nb_products - 1 });
+		//on suprime le produit dans la fiche shop
+		await Shop.updateOne({ _id: product.shop }, { $pull: { products: product._id } });
 
 		// supprimer le produit
 		await product.deleteOne();

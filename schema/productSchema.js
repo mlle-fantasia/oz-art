@@ -23,9 +23,24 @@ const productSchema = new mongoose.Schema({
 		type: String,
 		required: [false, ""],
 	},
+	promote: {
+		type: Boolean,
+		required: [true, false],
+	},
+	// prix en centime
 	price: {
 		type: Number,
-		required: [false, ""],
+		required: [true, 0],
+	},
+	// taux de tva number (ex 20% -> 200)
+	tva: {
+		type: Number,
+		required: [true, 200],
+	},
+	// frais de port en centime
+	port: {
+		type: Number,
+		required: [true, 0],
 	},
 	characteristics: {
 		type: Array,

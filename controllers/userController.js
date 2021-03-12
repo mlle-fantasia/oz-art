@@ -7,6 +7,7 @@ const mailjet = require("node-mailjet").connect(process.env.MAILHET_APIKEY, proc
 var jwt = require("jsonwebtoken");
 const path = require("path");
 var glob = require("glob");
+const Stripe = require("stripe");
 
 module.exports.controller = (app) => {
 	app.get("/users", async function (req, res) {
@@ -27,7 +28,7 @@ module.exports.controller = (app) => {
 		let response = {};
 		if (avatardefault) {
 			response = await Services.saveAvatarDefault(avatardefault);
-		} else if (req.files && req.files.avatarfile) {
+		} else if (req.files && req.files.image) {
 			response = await Services.saveAvatar(req.files, user._id);
 		}
 		if (response.erreur) res.status(500).send(response.erreur);
@@ -55,5 +56,19 @@ module.exports.controller = (app) => {
 
 		let user = await User.findOne({ _id: req.params.id });
 		res.send({ success: "user_edit_ok", data: { user } });
+	});
+
+	app.post("/admin/paiment", Services.accessCHECK, async function (req, res) {
+		console.log("req.body.token", req.body.token);
+	});
+	app.post("/admin/payment/intent", Services.accessCHECK, async function (req, res) {
+		const stripe = Stripe(process.env.STRIPE_KEY);
+		const paymentIntent = await stripe.paymentIntents.create({
+			amount: 1099,
+			currency: "eur",
+			payment_method_types: ["card"],
+		});
+		console.log("paymentIntent", paymentIntent);
+		res.send({ success: "post_paymentintent_success", data: { client_secret: paymentIntent.client_secret } });
 	});
 };

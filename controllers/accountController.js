@@ -16,31 +16,30 @@ const includeMail = {
 	footer: fs.readFileSync("viewsemail/footerMail.html", "utf8"),
 };
 
-/**
- * vérifie le token passé dans la request.
- * verifie que l'utilisateur existe
- * middleware appelé sur toute les routes qui nécessitent une authentification
- * @param {request} request
- * @param {response} response
- * @param {function} next
- */
-/* async function authMiddleware(request, response, next) {
-	console.log("je passe");
-	try {
-		let decoded = jwt.verify(req.query.user, process.env.TOKEN_KEY);
-		let user = await User.findOne({ _id: decoded.id });
-		console.log("user", user);
-		if (user) {
-			next(user);
-		} else {
-			response.status(401).send();
-		}
-	} catch (error) {
-		response.status(401).send();
-	}
-} */
-
 module.exports.controller = (app) => {
+	/**
+	 * login depuis le site
+	 * vérifie si l'utilisateur exite avec cette adresse mail, vérifie le mot de passe
+	 * si c'est ok, créer un token et un refreshtoken et les envoie
+	 */
+	app.post("/site/login", async function (req, res) {
+		console.log("site/login, body :", req.body);
+		let user = await User.findOne({ email: req.body.email });
+		if (!user) return res.redirect(req.body.url + "?success=false&action=login");
+		let hash = user.password;
+		const match = await bcrypt.compare(req.body.password, hash);
+		console.log("match", match);
+		if (match) {
+			var token = jwt.sign({ id: user._id }, process.env.TOKEN_KEY, { expiresIn: 60 * 60 });
+			console.log("token", token);
+			//var refreshtoken = jwt.sign({ id: user._id }, process.env.TOKEN_KEY, { expiresIn: 600 * 600 });
+			return res.redirect(req.body.url + "?success=true&token=" + token + "&oldaction=" + req.body.actionfailed);
+		} else {
+			console.log("je passe");
+			return res.redirect(req.body.url + "?success=false&action=login");
+		}
+	});
+
 	/**
 	 * est appelé par le frontend si le token n'est pas valide.
 	 * attend dans req.body.refreshtoken le refreshtoken.

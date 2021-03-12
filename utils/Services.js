@@ -16,19 +16,18 @@ exports.saveAvatar = async (file, userId) => {
 		let response = { erreur: null, pathAvatar: "" };
 		// suprimer les avatars existant s'il y en a
 		let pathAvatar = "./uploads/avatars/" + userId;
-		let files = glob.sync(pathAvatar + ".*", {});
-		if (files && files.length) {
-			for (let i = 0; i < files.length; i++) {
-				const file = files[i];
+		let filesToDelete = glob.sync(pathAvatar + ".*", {});
+		if (filesToDelete && filesToDelete.length) {
+			for (let i = 0; i < filesToDelete.length; i++) {
+				const file = filesToDelete[i];
 				fs.unlinkSync(file);
 			}
 		}
 		// on crée le fichier dans uploads
-		console.log("file", file);
-		let f = path.basename(file.avatarfile.name);
+		let f = path.basename(file.image.name);
 		let ext = path.extname(f).toLowerCase();
 		pathAvatar += ext;
-		file.avatarfile.mv(pathAvatar, async function (err) {
+		file.image.mv(pathAvatar, async function (err) {
 			if (err) response.erreur = err;
 			else response.pathAvatar = "/avatars/" + userId + ext;
 			console.log("response", response);
@@ -64,6 +63,7 @@ exports.saveAvatarDefault = async (avatardefault) => {
  * vérifie le token dans le header de la requete s'il n'est pas ok,  renvoie une erreur 401
  */
 exports.accessCHECK = async (req, res, next) => {
+	
 	if (req.headers["x-auth-accesstoken"] || req.query["token"]) {
 		let token = req.headers["x-auth-accesstoken"] || req.query["token"];
 		console.log("token", token, process.env.TOKEN_KEY);
